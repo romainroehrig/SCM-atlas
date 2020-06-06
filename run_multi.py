@@ -10,8 +10,7 @@ from Model import Model
 from Simulation import Simulation
 from MultiAtlas import MultiAtlas
 
-#dir_atlas = os.path.dirname(os.path.realpath(__file__))
-dir_atlas = '/Users/romainroehrig/Desktop/SCM_atlas/'
+dir_atlas = os.path.dirname(os.path.realpath(__file__)) + '/MesAtlas/'
 
 cases = ['AYOTTE','IHOP','BOMEX','RICO','ARMCU','SANDU','ASTEX']
 subcases = OrderedDict([
@@ -37,15 +36,15 @@ for case in cases:
 #              Simulation(name='CMIP6.LPBLE',model=model,case=case,subcase=subcase,line='b'),
                                      ]
 print 'Initialize Atlas'
-atlas = MultiAtlas('test4',simulations=simulations,root_dir=dir_atlas)
+atlas = MultiAtlas('CMIP6',simulations=simulations,root_dir=dir_atlas)
 #atlas.info()
 
 
 print 'Running'
 # (Re)Run a subset of atlas cases
-atlas.run(cases=['ASTEX',])
+#atlas.run(cases=['ASTEX',])
 # Run atlas for all cases
-#atlas.run()
+atlas.run()
 
 # Prepare pdf files assembling atlas diagnostics
 #print 'Preparing pdf files for each case'
