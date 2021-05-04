@@ -26,8 +26,8 @@ for ref in tmp.keys():
 # Configuration file for BOMEX atlas
 ####################################
 
-tmin = cdtime.comptime(2002,6,14,6)
-tmax = cdtime.comptime(2002,6,14,10)
+tmin = cdtime.comptime(2002,6,14,12)
+tmax = cdtime.comptime(2002,6,14,19)
 
 diagnostics = OrderedDict([
     ("2D_dyn",{

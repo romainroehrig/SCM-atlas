@@ -14,8 +14,8 @@ from Dataset import Dataset
 # Configuration file for AYOTTE atlas
 ####################################
 
-tmin = cdtime.comptime(2009,12,11,0)
-tmax = cdtime.comptime(2009,12,11,6)
+tmin = cdtime.comptime(2009,12,11,10)
+tmax = cdtime.comptime(2009,12,11,17)
 
 diagnostics = OrderedDict([
     ("2D",{

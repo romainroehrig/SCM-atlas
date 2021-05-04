@@ -163,6 +163,6 @@ def plot2D(x,y,data,cmap=plt.cm.RdBu,levels=None,firstwhite=False,badcolor='dark
     if namefig is None:
         plt.show()
     else:
-      plt.savefig(namefig)
+        plt.savefig(namefig)
 
     plt.close()

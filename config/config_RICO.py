@@ -22,7 +22,7 @@ tmp = OrderedDict([
 
 references = []
 for ref in tmp.keys():
-    references.append(Dataset(name=ref,case='RICO',subcase='REF',ncfile=tmp[ref]['ncfile'],line=tmp[ref]['line']))
+    references.append(Dataset(name=ref,case='RICO',subcase='SHORT',ncfile=tmp[ref]['ncfile'],line=tmp[ref]['line']))
 
 ####################################
 # Configuration file for ARMCU atlas
