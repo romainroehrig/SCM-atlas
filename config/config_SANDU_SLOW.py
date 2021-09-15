@@ -16,10 +16,10 @@ import config_SANDU as config
 subcase = 'SLOW'
 
 tmp = OrderedDict([
-       ('SAM',    {'ncfile': '/Users/romain/data/LES/SANDU/SANDU_{0}_LES_SAM_RR.nc'.format(subcase)   , 'line': 'k'}),
-       ('DALES',  {'ncfile': '/Users/romain/data/LES/SANDU/SANDU_{0}_LES_DALES_RR.nc'.format(subcase) , 'line': 'b--'}),
-       ('DHARMA', {'ncfile': '/Users/romain/data/LES/SANDU/SANDU_{0}_LES_DHARMA_RR.nc'.format(subcase), 'line': 'b-.'}),
-       ('UCLA',   {'ncfile': '/Users/romain/data/LES/SANDU/SANDU_{0}_LES_UCLA_RR.nc'.format(subcase)  , 'line': 'g--'}),
+       ('SAM',    {'ncfile': '/Users/romain/data/LES/SANDU/SANDU_{0}_LES_SAM_RR_new.nc'.format(subcase)   , 'line': 'k'}),
+       ('DALES',  {'ncfile': '/Users/romain/data/LES/SANDU/SANDU_{0}_LES_DALES_RR_new.nc'.format(subcase) , 'line': 'b--'}),
+       ('DHARMA', {'ncfile': '/Users/romain/data/LES/SANDU/SANDU_{0}_LES_DHARMA_RR_new.nc'.format(subcase), 'line': 'b-.'}),
+       ('UCLA',   {'ncfile': '/Users/romain/data/LES/SANDU/SANDU_{0}_LES_UCLA_RR_new.nc'.format(subcase)  , 'line': 'g--'}),
        ])
 
 references = []

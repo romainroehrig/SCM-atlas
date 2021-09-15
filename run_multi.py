@@ -22,7 +22,6 @@ dir_atlas = os.path.dirname(os.path.realpath(__file__)) + '/MesAtlas/'
 
 #cases = ['GABLS1','AYOTTE','IHOP','BOMEX','RICO','ARMCU','SANDU','ASTEX']
 cases = ['ARMCU', 'RICO', 'SANDU']
-cases = ['ARMCU','RICO']
 subcases = OrderedDict([
         ('GABLS1',['REF']),
         ('AYOTTE',['00SC','00WC','03SC','05SC','05WC','24SC','24SC']),
@@ -63,7 +62,7 @@ logger.info('Running multi-atlas')
 atlas.run()
 
 # Prepare pdf files assembling atlas diagnostics
-logger.info('Preparing pdf files for each atlas case')
+#logger.info('Preparing pdf files for each atlas case')
 #atlas.topdf()
 
 # Prepare html interface for atlas of all cases

@@ -39,7 +39,6 @@ def plot_timeseries(filein,varname,coef=None,units='',tmin=None,tmax=None,dtlabe
             try:
                 data[k] = np.squeeze(ds[varname[k]].data)*coef[k]
                 data[k] = np.ma.masked_where(data[k] == missing, data[k])
-                #print(ds[varname[k]])
                 time[k] = ds[varname[k]].time.data
                 kref = k
             except KeyError as e:

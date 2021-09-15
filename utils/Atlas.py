@@ -140,7 +140,10 @@ class Atlas:
             raise ValueError('Atlas not valid')
 
         for group in self.grouplist:
-            logger.info('Running atlas diagnostic group ' + group.name)
+            if lcompute:
+                logger.info('Running diagnostic group {0} for {1} atlas'.format(group.name,self.name))
+            else:
+                logger.info('Initialize diagnostic group {0} for {1} atlas'.format(group.name,self.name))
             group.run(self.datasets,root_dir=self.diag_dir,lcompute=lcompute)
 
         # synthesis of output
