@@ -5,6 +5,9 @@ import os, sys
 sys.path = ['../config/',] + sys.path
 import importlib
 
+import logging
+logger = logging.getLogger(__name__)
+
 from collections import OrderedDict
 
 from Atlas import Atlas
@@ -19,7 +22,7 @@ class MultiAtlas:
         self.name = name
 
         if simulations == {}:
-            print 'ERROR: you must give at least one simulation'
+            logger.error('you must give at least one simulation')
             raise ValueError
 
         # Simulation datasets
@@ -38,7 +41,7 @@ class MultiAtlas:
         if root_dir[0] == '/':
             self.atlas_dir = '{0}/{1}'.format(root_dir,self.name)
         else:
-            print 'ERROR: root directory is expected to be given with an absolute path. root_dir=', root_dir
+            logger.error('root directory is expected to be given with an absolute path. root_dir=', root_dir)
             raise ValueError
 
         if not(os.path.exists(self.atlas_dir)):
@@ -68,7 +71,7 @@ class MultiAtlas:
                 elif os.path.isfile('config/config_{0}.py'.format(case)):
                     config = importlib.import_module('config_{0}'.format(case))
                 else:
-                    print 'ERROR: Cannot find a config files in ../config/ for case {0}, subcase {1}'.format(case,subcase)
+                    logger.error('Cannot find a config files in ../config/ for case {0}, subcase {1}'.format(case,subcase))
                     raise ValueError
 
                 tmp = Atlas('{0}/{1}'.format(case,subcase),references=config.references,simulations=simulations[case][subcase],root_dir=self.atlas_dir)
@@ -82,11 +85,11 @@ class MultiAtlas:
         self.run(lcompute=False,lverbose=False)
 
     def info(self):
-        print '### Multi Atlas {0} ###'.format(self.name)
-        print 'Multi atlas directory:', self.atlas_dir
-        print 'Cases:'
+        print('### Multi Atlas {0} ###'.format(self.name))
+        print('Multi atlas directory:', self.atlas_dir)
+        print('Cases:')
         for c in self.cases:
-            print '  {0}: {1}'.format(c,self.subcases[c])
+            print('  {0}: {1}'.format(c,self.subcases[c]))
         for a in self.atlaslist:
             a.info(references=True,simulations=True)
 
@@ -95,20 +98,17 @@ class MultiAtlas:
 
         if cases is None:
             for atlas in self.atlaslist:
-                if lverbose:
-                    print atlas.name
+                logger.debug(atlas.name)
                 atlas.run(lcompute=lcompute)
         else:
             for atlas in self.atlaslist:
                 if atlas.case in cases:
                     if subcases is None:
-                        if lverbose:
-                            print atlas.name
+                        logger.debug(atlas.name)
                         atlas.run(lcompute=lcompute)
                     else:
                         if atlas.subcase in subcases[atlas.case]:
-                            if lverbose:
-                                print atlas.name
+                            logger.debug(atlas.name)
                             atlas.run(lcompute=lcompute)
 
 
@@ -118,8 +118,7 @@ class MultiAtlas:
             os.makedirs(self.pdf_dir)
 
         for atlas in self.atlaslist:
-            if lverbose:
-                print atlas.name
+            logger.debug(atlas.name)
             atlas.topdf()
             pdflink = '{0}/{1}'.format(self.pdf_dir,atlas.pdfname)
             if os.path.exists(pdflink):

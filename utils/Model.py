@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
-import os, sys
-#sys.path = ['./','../config/'] + sys.path
+import os
+
+import logging
+logger = logging.getLogger(__name__)
 
 _dir_path = os.path.dirname(os.path.realpath(__file__))
 _known_models = {}
@@ -23,25 +25,25 @@ class Model:
 
     def info(self):
 
-        print '*** Model Configuration {0} ***'.format(self.name)
-        print 'Binaries version:', self.binVersion
-        print 'timestep: {0} seconds'.format(self.tstep)
-        print 'Vertical discretization:', self.levgrid
-        print 'Atmospheric namelist:', self.namATM
-        print 'SURFEX namelist:', self.namSFX
-        print 'MUSC simulation:', self.MUSC
+        print('*** Model Configuration {0} ***'.format(self.name))
+        print('Binaries version:', self.binVersion)
+        print('timestep: {0} seconds'.format(self.tstep))
+        print('Vertical discretization:', self.levgrid)
+        print('Atmospheric namelist:', self.namATM)
+        print('SURFEX namelist:', self.namSFX)
+        print('MUSC simulation:', self.MUSC)
 
     def add2known(self,overwrite=False):
 
         if self.name in _known_models.keys():
             if overwrite:
-                print 'WARNING: Model configuration {0} is already known'.format(self.name)
-                print 'WARNING: it is overwritten'
+                logger.warning('Model configuration {0} is already known'.format(self.name))
+                logger.warning('it is overwritten')
                 _known_models[self.name] = self
             else:
-                print 'ERROR: Model configuration {0} is already known'.format(self.name)
-                print 'You can overwrite it using overwrite argument'
-                sys.exit()
+                logger.error('Model configuration {0} is already known'.format(self.name))
+                logger.error('You can overwrite it using overwrite argument')
+                raise ValueError
         else:
             _known_models[self.name] = self
 
@@ -55,8 +57,8 @@ def save_all(overwrite=False):
     fileout = "{0}/known_models.json".format(_dir_path)
     if not(overwrite):
         if os.path.exists(fileout):
-            print "ERROR: Can't overwrite existing json file containing known models"
-            sys.exit()
+            logger.error("Can't overwrite existing json file containing known models")
+            raise ValueError
 
     data2save = {}
     for mod in _known_models.keys():
@@ -78,7 +80,7 @@ def load_all(overwrite=False):
     with open(filein) as json_file:
         data = json.load(json_file)
         for name in data.keys():
-            print name
+            logger.info(name)
             mod = Model(**data[name])
             mod.add2known(overwrite=overwrite)
 

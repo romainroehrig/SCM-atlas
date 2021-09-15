@@ -1,6 +1,5 @@
 # -*- coding:UTF-8 -*-
 
-import cdtime
 import cdms2, MV2
 import os, sys
 

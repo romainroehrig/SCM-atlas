@@ -1,22 +1,28 @@
-import sys
+
+import logging
+logger = logging.getLogger(__name__)
 
 from collections import OrderedDict
 
-import cdms2
-import MV2
-import cdtime
 import numpy as np
 import numpy.ma as ma
+import xarray as xr
+
+from datetime import timedelta
+import cftime
+
 import math
 
 import time as TT
 
 import plotutils
 
+import constants as cc
+
 verbose = False
 lperf = False
 
-missing = 1.e20
+missing = cc.missing
 
 def plot_timeseries(filein,varname,coef=None,units='',tmin=None,tmax=None,dtlabel='1h',error=None,**kwargs):
     """
@@ -26,119 +32,65 @@ def plot_timeseries(filein,varname,coef=None,units='',tmin=None,tmax=None,dtlabe
     data = OrderedDict()
     time = {}
     if coef is None:
-      coef = {}
-      for k in filein.keys():
-        coef[k] = 1.
+        coef = {k: 1. for k in filein.keys()}
 
     for k in filein.keys():
-      f = cdms2.open(filein[k])
-      try:
-        data[k] = f(varname[k],squeeze=1)*coef[k]
-        time[k] = data[k].getTime()
-        kref = k
-      except cdms2.error.CDMSError as e:
-        data[k] = None  
-        time[k] = None
-        if verbose:
-          print 'Variable {2} probably unknown in dataset {0} (file={1})'.format(k,filein[k],varname[k])
-          print 'Raised error: cdms2.error.CDMSError', e
-        if error is not None:
-          if isinstance(error,dict):
-            if error.has_key(k):
-              error[k].append(varname[k])
-            else:
-              error[k] = [varname[k],]
-          else:
-            print 'type of error unexpected:', type(error)
-            print 'error should be a dictionnary'
-            sys.exit()
-      except:
-        raise
-      f.close()
+        with xr.open_dataset(filein[k], use_cftime=True) as ds:
+            try:
+                data[k] = np.squeeze(ds[varname[k]].data)*coef[k]
+                data[k] = np.ma.masked_where(data[k] == missing, data[k])
+                #print(ds[varname[k]])
+                time[k] = ds[varname[k]].time.data
+                kref = k
+            except KeyError as e:
+                data[k] = None  
+                time[k] = None
+                logger.debug('Variable {2} probably unknown in dataset {0} (file={1})'.format(k,filein[k],varname[k]))
+                logger.debug('Raised error: KeyError')
+                if error is not None:
+                    if isinstance(error,dict):
+                        if k in error:
+                            error[k].append(varname[k])
+                        else:
+                            error[k] = [varname[k],]
+                    else:
+                        logger.error('type of error unexpected:', type(error))
+                        logger.error('error should be a dictionnary')
+                        raise ValueError
+            except:
+                raise
 
     for k in filein.keys():
-      if data[k] is None:
-        del(data[k])
-        del(time[k])
-#        data[k] = data[kref] + 1.e20  
-#        time[k] = data[k].getTime()
+        if data[k] is None:
+            del(data[k])
+            del(time[k])
 
-    timeref = time[kref]
+    try:
+        timeref = time[kref]
+    except UnboundLocalError as e:
+        logger.error('Problem with variable {0}'.format(varname[k]))
+        raise e
+
+    tunits = timeref[0].strftime("hours since %Y-%m-%d %H:%M:0.0")
 
     if tmin is None:
-        tmin = cdtime.reltime(timeref[0],timeref.units)
-        print tmin.tocomp()
+        tmin = timeref[0]
+    logger.debug('tmin = ' + tmin.isoformat())
+    
     if tmax is None:
-        tmax = cdtime.reltime(timeref[-1],timeref.units)
+        tmax = timeref[-1]
+    logger.debug('tmax = ' + tmax.isoformat())
 
-    tt = []
-    tlabels = []
+    tlabels = get_time_labels(tmin, tmax, tunits, dtlabel)
 
-    tminloc = tmin.tocomp()
-    if dtlabel == '1h':
-      tmin0 = cdtime.comptime(tminloc.year,tminloc.month,tminloc.day,tminloc.hour)
+    tmin_rel = cftime.date2num(tmin, tunits)
+    tmax_rel = cftime.date2num(tmax, tunits)
 
-      t0 = tmin0.add(0,cdtime.Hour)
-      while t0.cmp(tmax) <= 0:
-        if t0.cmp(tmin) >= 0: 
-          tt.append(t0.torel(timeref.units).value)
-          tlabels.append('{0}'.format(t0.hour))
-        t0 = t0.add(1,cdtime.Hour)
-    elif dtlabel == '2h':
-      tmin0 = cdtime.comptime(tminloc.year,tminloc.month,tminloc.day,tminloc.hour)
+    for k in data.keys():
+        time[k] = cftime.date2num(time[k], tunits)
 
-      t0 = tmin0.add(0,cdtime.Hour)
-      while t0.cmp(tmax) <= 0:
-        if t0.cmp(tmin) >= 0: 
-          tt.append(t0.torel(timeref.units).value)
-          tlabels.append('{0}'.format(t0.hour))
-        t0 = t0.add(2,cdtime.Hour)
-    elif dtlabel == '6h':
-      tmin0 = cdtime.comptime(tminloc.year,tminloc.month,tminloc.day,tminloc.hour)
-
-      t0 = tmin0.add(0,cdtime.Hour)
-      while t0.cmp(tmax) <= 0:
-        if t0.cmp(tmin) >= 0: 
-          tt.append(t0.torel(timeref.units).value)
-          tlabels.append('{0}'.format(t0.hour))
-        t0 = t0.add(6,cdtime.Hour)  
-    elif dtlabel == '10d':
-      tmin0 = cdtime.comptime(tminloc.year,tminloc.month,tminloc.day,tminloc.hour)
-
-      t0 = tmin0.add(0,cdtime.Hour)
-      while t0.cmp(tmax) <= 0:
-        if t0.cmp(tmin) >= 0: 
-          tt.append(t0.torel(timeref.units).value)
-          tlabels.append('{0}/{1}'.format(t0.month,t0.day))
-        if t0.day == 1:
-            t0 = cdtime.comptime(t0.year,t0.month,10,0)
-        elif t0.day == 10:
-            t0 = cdtime.comptime(t0.year,t0.month,20,0)
-        elif t0.day == 20:
-            if t0.month == 12:
-              t0 = cdtime.comptime(t0.year+1,1,1,0)
-            else:
-              t0 = cdtime.comptime(t0.year,t0.month+1,1,0)
-        else:
-            t0 = t0.add(10,cdtime.Day)
-            #print 't0 unexpected',t0
-    else:
-      print 'dtlabel={} not coded yet'.format(dtlabel)
-      sys.exit()
-
-    tlabels = tt,tlabels
-
-    for k in data.keys(): #filein.keys():
-      nt, = time[k].shape
-      for it in range(0,nt):
-         time[k][it] = cdtime.reltime(time[k][it],time[k].units).torel(timeref.units).value
-      time[k] = np.array(time[k][:])
-      data[k] = np.array(data[k][:])
-      data[k] = np.ma.masked_where(data[k][:] == missing,data[k][:])
-
-    plotutils.plot1D(time,data,\
-            xmin = tmin.torel(timeref.units).value,\
-            xmax = tmax.torel(timeref.units).value,\
+    plotutils.plot1D(time, data,\
+            xmin=tmin_rel, xmax=tmax_rel,\
             xlabels=tlabels,\
             **kwargs)
 
@@ -148,249 +100,129 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
        Do a profile plot of varname for several MUSC files
     """
 
-    if lperf:
-      TT0 = TT.time()
-
     data = OrderedDict()
     level = {}
     if coef is None:
-      coef = {}
-      for k in filein.keys():
-        coef[k] = 1.
+        coef = {k: 1. for k in filein.keys()}
     
     if lev is None:
-      lev = {}
-      for k in filein.keys():
-        lev[k] = 'zf'
+        lev = {k: 'zf' for k in filein.keys()}
     if isinstance(lev,str):
-      levloc = lev
-      lev = {}
-      for k in filein.keys():
-        lev[k] = levloc
+      lev = {k: lev for k in filein.keys()}
 
     for i,k in enumerate(filein.keys()):
-#      print i, k, filein[k]
-      f = cdms2.open(filein[k])
+        with xr.open_dataset(filein[k], use_cftime=True) as ds:
 
-      try:
-        time = f[varname[k]].getTime()
-#      print time
-        if tmin is None:
-          tmin = cdtime.reltime(time[0],time.units)
-        if tmax is None:
-          tmax = cdtime.reltime(time[-1],time.units)
-
-        if t0:
-          tmin = cdtime.reltime(time[0],time.units)
-          tmax = cdtime.reltime(time[1],time.units)
-          tmax = tmax.add(-1.,cdtime.Second)
-
-#      print tmin.tocomp(), tmax.tocomp()
-
-        if tt is not None:
-          if isinstance(tt,int):
-            tmin = cdtime.reltime(time[tt],time.units)
-            tmax = cdtime.reltime(time[tt],time.units)
-          else:
-            if tt.cmp(tmin) <= 0:
-              print 'tt={0} is lower than tmin={1}'.formtat(tt.tocomp(),tmin.tocomp())
-            if tt.cmp(tmax) > 0:
-              print 'tt={0} is greatet than tmax={1}'.formtat(tt.tocomp(),tmax.tocomp())
-            nt, = time.shape
-            mini = 1.e20
-            ii = 1.e20
-            ttloc = tt.torel(time.units)
-            for it in range(0,nt):
-              tloc = cdtime.reltime(time[it],time.units)
-              tmp = math.fabs(ttloc.value-tloc.value)
-              if tmp < mini:
-                mini = tmp
-                ii = it
-#        dt = time[1]-time[0]
-#        if time.units[:5] == 'hours':
-#          tmin = tt.add(-dt/2.,cdtime.Hour)
-#          tmax = tt.add(dt/2.,cdtime.Hour)
-#        elif time.units[:7] == 'seconds':
-#          tmin = tt.add(-dt/2.,cdtime.Second)
-#          tmax = tt.add(dt/2.,cdtime.Second)
-
-        data[k] = MV2.average(f(varname[k],time=(tmin,tmax))*coef[k],axis=0)
-        if lev[k] == 'zf':
-          level[k] = f(lev[k])
-        elif lev[k] == 'zh':
-          try:
-            level[k] = f(lev[k])
-          except:
             try:
-              level[k] = f('zf')
+                time = ds[varname[k]].time.data
+                if tmin is not None and tmax is not None:
+
+                    data[k] = np.average(ds[varname[k]].sel(time=slice(tmin,tmax)).data,axis=0)*coef[k]
+                    level[k] = get_level(ds, lev[k])
+
+                    if len(level[k].shape) == 2:
+                        level[k] = np.average(level[k].sel(time=slice(tmin,tmax)).data,axis=0)
+
+                elif t0:
+
+                    data[k] = ds[varname[k]].data[0,:]*coef[k]
+                    level[k] = get_level(ds, lev[k])
+
+                    if len(level[k].shape) == 2:
+                        level[k] = level[k].data[0,:]
+
+                elif tt is not None:
+
+                    if tmin is None:
+                        tmin = time[0]
+                    if tmax is None:
+                        tmax = time[-1]
+
+                    logger.debug('tmin = ' + tmin.isoformat())
+                    logger.debug('tmax = ' + tmax.isoformat())
+
+                    if isinstance(tt,int):
+                        tt = time[tt]
+                    else:
+                        if tt < tmin:
+                            logger.info('tt={0} is lower than tmin={1}'.format(tt.isoformat(),tmin.isoformat()))
+                        if tt > tmax:
+                            logger.info('tt={0} is greatet than tmax={1}'.format(tt.isoformat(),tmax.isoformat()))
+
+                    logger.debug('dataset = ' + k)
+                    logger.debug('tt = ' + tt.isoformat())
+
+                    data[k] = ds[varname[k]].sel(time=tt, method='nearest').data*coef[k]
+                    level[k] = get_level(ds, lev[k])
+
+                    if len(level[k].shape) == 2:
+                        level[k] = level[k].sel(time=tt, method='nearest').data
+
+                else:
+                    logger.error('Case unexpected : tmin, tmax and tt are None and t0 is False')
+                    raise ValueError
+                    
+                kref = k
+
+            except (KeyError, AttributeError) as e:
+                data[k] = None
+                level[k] = None   
+                logger.debug('Variable {2} probably unknown in dataset {0} (file={1})'.format(k,filein[k],varname[k]))
+                logger.debug('Raised error: {0}'.format(e))
+                if error is not None:
+                    if isinstance(error,dict):
+                        if k in error:
+                            error[k].append(varname[k])
+                        else:
+                            error[k] = [varname[k],]
+                    else:
+                        logger.error('type of error unexpected:', type(error))
+                        logger.error('error should be a dictionnary')
+                        raise ValueError
             except:
-              raise
-        elif lev[k] == 'pf':
-          level[k] = f(lev[k])
-        elif lev[k] == 'ph':
-          try:
-            level[k] = f(lev[k])
-          except:
-            try:
-              level[k] = f('pf')
-            except:
-              raise          
-        if len(level[k].shape) == 2:
-          level[k] = MV2.average(level[k](time=(tmin,tmax)),axis=0)
-        kref = k
-      except cdms2.error.CDMSError as e:
-        data[k] = None
-        level[k] = None   
-        f.close()        
-        if verbose:
-          print 'Variable {2} probably unknown in dataset {0} (file={1})'.format(k,filein[k],varname[k])
-          print 'Raised error: cdms2.error.CDMSError', e
-        if error is not None:
-          if isinstance(error,dict):
-            if error.has_key(k):
-              error[k].append(varname[k])
-            else:
-              error[k] = [varname[k],]
-          else:
-            print 'type of error unexpected:', type(error)
-            print 'error should be a dictionnary'
-            sys.exit()
-      except AttributeError as e:
-        data[k] = None
-        level[k] = None
-        f.close()          
-        if verbose:
-          print 'Probably no time axis for variable {2} in dataset {0} (file={1})'.format(k,filein[k],varname[k])
-          print 'Raised error: AttributeError', e
-        if error is not None:
-          if isinstance(error,dict):
-            if error.has_key(k):
-              error[k].append(varname[k])
-            else:
-              error[k] = [varname[k],]
-          else:
-            print 'type of error unexpected:', type(error)
-            print 'error should be a dictionnary'
-            sys.exit()          
-      except:
-        raise
+                raise
 
-      f.close()
-
-      if lperf:
-        TT1 = TT.time()
-        print 'file', filein[k],':', TT1-TT0, 's'
-        TT0 = TT.time()
-
-    if lperf:
-        TT1 = TT.time()
-        print 'Part 1:', TT1-TT0, 's'
-        TT0 = TT.time()
 
     for i,k in enumerate(filein.keys()):
 
-     if data[k] is None:
-        del(data[k])
-        del(level[k])
-#        data[k] = data[kref]*0. + 1.e20
-#        level[k] = level[kref]*0. + 1.e20
-     else:
-      if lev[k] in ['zf','zh']:
-        if levunits == 'm':
-          pass
-        elif levunits == 'km':
-          level[k] = level[k]/1000.
+        if data[k] is None:
+            del(data[k])
+            del(level[k])
         else:
-          print 'levunits={0} for lev={1} not coded yet'.format(levunits,lev[k])
-          sys.exit()
-      elif lev[k] in ['pf','ph']:
-        if levunits == 'Pa':
-          pass
-        elif levunits == 'hPa':
-          level[k] = level[k]/100.
-        else:
-          print 'levunits={} for lev=pf not coded yet'.format(levunits)
-          sys.exit()
-      else:
-        print 'lev={} not coded yet'.format(lev[k])
-        sys.exit()
+            level[k] = update_level(level[k], lev[k], levunits)
 
-    if lperf:
-        TT1 = TT.time()
-        print 'Part 2:', TT1-TT0, 's'
-        TT0 = TT.time()
+    if init: # Adding initial profiles on plot
+        with xr.open_dataset(filein[kref]) as ds:
+            data['init'] = ds[varname[kref]].data[0,:]*coef[k]
+            tmp = ds[lev[kref]].data
+            if len(tmp.shape) == 2:
+                level['init'] = tmp[0,:]
+            elif len(tmp.shape) == 1:
+                level['init'] = tmp[:]
+            else:
+                logger.error('level shape unexpected:', tmp.shape)
+                raise ValueError
 
-    if init:
-      f = cdms2.open(filein[kref])
-      data['init'] = f(varname[kref])[0,:]*coef[k]
-      tmp = f(lev[kref])
-      if len(tmp.shape) == 2:
-        level['init'] = tmp[0,:]
-      elif len(tmp.shape) == 1:
-        level['init'] = tmp[:]
-      else:
-        print 'level shape unexpected:', tmp.shape
-        sys.exit()
-      f.close()
+        level['init'] = update_level(level['init'], lev[kref], levunits)
 
-      if lev[kref] in ['zf','zh']:
-        if levunits == 'm':
-          pass
-        elif levunits == 'km':
-          level['init'] = level['init']/1000.
-        else:
-          print 'levunits={0} for lev={1} not coded yet'.format(levunits,lev[kref])
-          sys.exit()
-      elif lev[kref] in ['pf','ph']:
-        if levunits == 'Pa':
-          pass
-        elif levunits == 'hPa':
-          level['init'] = level['init']/100.
-        else:
-          print 'levunits={} for lev=pf not coded yet'.format(levunits)
-          sys.exit()
-      else:
-        print 'lev={} not coded yet'.format(lev[kref])
-        sys.exit()
-
-      if lines is None:
-        lines = {}
-      lines['init'] = 'k--'
-
-      if lperf:
-        TT1 = TT.time()
-        print 'Part init:', TT1-TT0, 's'
-        TT0 = TT.time()
+        if lines is None:
+            lines = {}
+        lines['init'] = 'k--'
 
 
-    for k in data.keys():
-      level[k] = np.array(level[k](squeeze=1))
-      data[k] = np.array(data[k](squeeze=1))
-      #print k, data[k].shape, level[k].shape
 
     if lbias:
         if refdataset is None:
-            print 'please provide reference dataset (keyword refdataset) to compute bias)'
-            sys.exit()
+            logger.error('please provide reference dataset (keyword refdataset) to compute bias)')
+            raise ValueError
         else: 
             for k in data.keys():
-              if not(k == refdataset):
-                data[k] = data[k]-data[refdataset]
+                if not(k == refdataset):
+                    data[k] = data[k]-data[refdataset]
             data[refdataset] = data[refdataset]*0.
-
-
-    if lperf:
-        TT1 = TT.time()
-        print 'Part 3:', TT1-TT0, 's'
-        TT0 = TT.time()
 
     plotutils.plot1D(data,level,lines=lines,**kwargs)
 
-    if lperf:
-        TT1 = TT.time()
-        print 'Plotting:', TT1-TT0, 's'
-        TT0 = TT.time()
-    
 
 def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tmax=None,dtlabel='1h',namefig=None,lbias=False,refdataset=None,error=None,**kwargs):
     """
@@ -403,244 +235,236 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
     levax = {}
     time = {}
     timeax = {}
+
     if coef is None:
-      coef = {}
-      for k in filein.keys():
-        coef[k] = 1.
+        coef = {k: 1. for k in filein.keys()}
     elif isinstance(coef,int) or isinstance(coef,float):
-      tmp = coef
-      coef = {}
-      for k in filein.keys():
-        coef[k] = tmp
+        coef = {k: coef for k in filein.keys()}
     
     if lev is None:
-      lev = {}
-      levunits = {}
-      for k in filein.keys():
-        lev[k] = 'zh'
-        levunits[k] = 'km'
+        lev = {k: 'zh' for k in filein.keys()}
+        levunits = {k: 'km' for k in filein.keys()}
     elif isinstance(lev,str):
-      tmp = lev
-      lev = {}
-      for k in filein.keys():
-        lev[k] = tmp
+        lev = {k: lev for k in filein.keys()}
 
     if levunits is None:
-      levunits = {}
-      for k in filein.keys():
-        if lev[k] == 'zh':
-          levunits[k] = 'km'
-        elif lev[k] in['ph','pf']:
-          levunits[k] = 'hPa'
-        else:
-          print 'lev={} not coded yet'.format(lev[k])
-          sys.exit()
+        levunits = {}
+        for k in filein.keys():
+            if lev[k] == 'zh':
+                levunits[k] = 'km'
+            elif lev[k] in['ph','pf']:
+                levunits[k] = 'hPa'
+            else:
+                logger.error('lev={} not coded yet'.format(lev[k]))
+                raise NotImplementedError
     elif isinstance(levunits,str):
-      tmp = levunits
-      levunits = {}
-      for k in filein.keys():
-        levunits[k] = tmp
+        levunits = {k: levunits for k in filein.keys()}
 
     datasets = filein.keys()
     if lbias:
-      if refdataset is None:
-          print 'please provide reference dataset (keyword refdataset) to compute bias)'
-          sys.exit()
-      else: 
-          f = cdms2.open(filein[refdataset])
-          dataref = f(varname[refdataset],squeeze=1)*coef[refdataset]
-          f.close()
-          tmp = []
-          for dd in datasets:
-              if not(dd == refdataset):
-                  tmp.append(dd)
-          datasets = tmp
+        if refdataset is None:
+            logger.error('please provide reference dataset (keyword refdataset) to compute bias)')
+            raise ValueError
+        else: 
+            with xr.open_dataset(filein[refdataset]) as ds:
+                dataref = ds[varname[refdataset]].data*coef[refdataset]
+            datasets.remove(refdataset)
 
+    for k in datasets:
+        with xr.open_dataset(filein[k], use_cftime=True) as ds:
+            try:
+                data = ds[varname[k]].data*coef[k]
+                if lbias:
+                    nt,_ = data.shape
+                    data = data-dataref[0:nt,:]
 
-    for k in datasets: #filein.keys():
-      #print k
-      f = cdms2.open(filein[k])
-      try:
-        data[k] = f(varname[k],squeeze=1)*coef[k]
-        if lbias:
-            nt,nlev = data[k].shape
-            tmp = data[k].getTime()
-            data[k] = data[k]-dataref[0:nt,:]
-            data[k].setAxis(0,tmp)
-      except cdms2.error.CDMSError as e:
-        data[k] = None
-        f.close()          
-        if verbose:
-          print 'Variable {2} probably unknown in dataset {0} (file={1})'.format(k,filein[k],varname[k])
-          print 'Raised error: cdms2.error.CDMSError', e
-        if error is not None:
-          if isinstance(error,dict):
-            if error.has_key(k):
-              error[k].append(varname[k])
-            else:
-              error[k] = [varname[k],]
-          else:
-            print 'type of error unexpected:', type(error)
-            print 'error should be a dictionnary'
-            sys.exit()            
-      except:
-        raise
+                time = ds[varname[k]].time.data
+                tunits = time[0].strftime("hours since %Y-%m-%d %H:%M:0.0")
+
+                if tmin is None:
+                    tmin = time[0]
+                logger.debug('tmin = ' + tmin.isoformat())
       
-      if data[k] is not None:
-        try:
-          levax[k] = f(lev[k],squeeze=1)
-        except:
-          if lev[k] == 'zh':
-            levax[k] = f('zf')
-          if lev[k] == 'ph':
-            levax[k] = f('pf')            
-        f.close()
+                if tmax is None:
+                    tmax = time[-1]
+                logger.debug('tmax = ' + tmax.isoformat())
 
-        if lev[k] == 'zh':
-          if levunits[k] == 'm':
-            pass
-          elif levunits[k] == 'km':
-             levax[k] = levax[k]/1000.
-          else:
-            print 'levunits={} for lev=zh not coded yet'.format(levunits[k])
-            sys.exit()
-        elif lev[k] == 'ph':
-          if levunits[k] == 'Pa':
-            pass
-          elif levunits[k] == 'hPa':
-            levax[k] = levax[k]/100.
-          else:
-            print 'levunits={} for lev=ph not coded yet'.format(levunits[k])
-            sys.exit()
-        else:
-          print 'lev={} not coded yet'.format(lev)
-          sys.exit()
-     
-        time[k] = data[k].getTime()
+                tlabels = get_time_labels(tmin, tmax, tunits, dtlabel)
 
+                tmin_rel = cftime.date2num(tmin, tunits)
+                tmax_rel = cftime.date2num(tmax, tunits)
+
+                time = cftime.date2num(time, tunits)
+                    
       
-        if len(levax[k].shape) == 2:
-          nt,nlev = levax[k].shape
-          timeax[k] = np.tile(time[k][:],(nlev,1))
-          X = timeax[k]
-          Y = np.transpose(levax[k])
-        else:
-          nlev, = levax[k].shape
-          nt, = time[k].shape
-          timeax[k] = np.tile(time[k][:],(nlev,1))
-          levax[k] = np.tile(levax[k],(nt,1))
-          X = np.array(timeax[k][:])
-          Y = np.transpose(levax[k][:])
+                try:
+                    levax = ds[lev[k]].data
+                except:
+                    if lev[k] == 'zh':
+                        levax = ds.zf.data
+                    if lev[k] == 'ph':
+                        levax = ds.pf.data         
 
-        if tmin is None:
-          tmin = cdtime.reltime(time[k][0],time.units)
-        if tmax is None:
-          tmax = cdtime.reltime(time[k][-1],time.units)
+                levax = update_level(levax, lev[k], levunits[k])
+      
+                if len(levax.shape) == 2:
+                    nt,nlev = levax.shape
+                    timeax = np.tile(time[:],(nlev,1))
+                    X = timeax
+                    Y = np.transpose(levax)
+                else:
+                    nlev, = levax.shape
+                    nt, = time.shape
+                    timeax = np.tile(time[:],(nlev,1))
+                    levax = np.tile(levax,(nt,1))
+                    X = np.array(timeax[:])
+                    Y = np.transpose(levax[:])
 
-        tt = []
-        tlabels = []
+                if isinstance(namefig,str):
+                    tmp = k + '_' + namefig
+                elif isinstance(namefig,dict):
+                    tmp = namefig[k]
+                elif namefig is None:
+                    tmp = None
+                else:
+                    logger.error('namefig type unexpected:', namefig)
+                    raise ValueError
 
-        tminloc = tmin.tocomp()
-        if dtlabel == '1h':
-          tmin0 = cdtime.comptime(tminloc.year,tminloc.month,tminloc.day,tminloc.hour)
+                kwargs['title'] = '{0} - {1}'.format(title0,k)
 
-          t0 = tmin0.add(0,cdtime.Hour)
-          while t0.cmp(tmax) <= 0:
-            if t0.cmp(tmin) >= 0: 
-              tt.append(t0.torel(time[k].units).value)
-              tlabels.append('{0}'.format(t0.hour))
-            t0 = t0.add(1,cdtime.Hour)
-        elif dtlabel == '2h':
-          tmin0 = cdtime.comptime(tminloc.year,tminloc.month,tminloc.day,tminloc.hour)
+                plotutils.plot2D(X,Y,ma.transpose(data),\
+                    xmin=tmin_rel, xmax=tmax_rel,\
+                    xlabels=tlabels,\
+                    namefig=tmp,\
+                    **kwargs)
 
-          t0 = tmin0.add(0,cdtime.Hour)
-          while t0.cmp(tmax) <= 0:
-            if t0.cmp(tmin) >= 0: 
-              tt.append(t0.torel(time[k].units).value)
-              tlabels.append('{0}'.format(t0.hour))
-            t0 = t0.add(2,cdtime.Hour)
-        elif dtlabel == '6h':
-          tmin0 = cdtime.comptime(tminloc.year,tminloc.month,tminloc.day,tminloc.hour)
+            except (KeyError, AttributeError) as e:
+                logger.debug('Variable {2} probably unknown in dataset {0} (file={1})'.format(k,filein[k],varname[k]))
+                logger.debug('Raised error: ' + str(e))
+                if error is not None:
+                    if isinstance(error,dict):
+                        if k in error:
+                            error[k].append(varname[k])
+                        else:
+                            error[k] = [varname[k],]
+                    else:
+                        logger.error('type of error unexpected:', type(error))
+                        logger.error('error should be a dictionnary')
+                        raise ValueError
+            except:
+                raise
 
-          t0 = tmin0.add(0,cdtime.Hour)
-          while t0.cmp(tmax) <= 0:
-            if t0.cmp(tmin) >= 0: 
-              tt.append(t0.torel(time[k].units).value)
-              tlabels.append('{0}'.format(t0.hour))
-            t0 = t0.add(6,cdtime.Hour) 
-        elif dtlabel == '10d':
-          tmin0 = cdtime.comptime(tminloc.year,tminloc.month,tminloc.day,tminloc.hour)
+def get_time_labels(tmin, tmax, tunits, dtlabel):
 
-          t0 = tmin0.add(0,cdtime.Hour)
-          while t0.cmp(tmax) <= 0:
-            if t0.cmp(tmin) >= 0: 
-              tt.append(t0.torel(time[k].units).value)
-              tlabels.append('{0}/{1}'.format(t0.month,t0.day))
+    tt = []
+    tlabels = []
+
+    if dtlabel == '1h':
+
+        tmin0 = cftime.datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
+        t0 = tmin0 + timedelta(hours=0)
+        while t0 <= tmax:
+            if t0 >= tmin: 
+                tt.append(cftime.date2num(t0, tunits))
+                tlabels.append('{0}'.format(t0.hour))
+            t0 = t0 + timedelta(hours=1)
+
+    elif dtlabel == '2h':
+
+        tmin0 = cftime.datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
+        t0 = tmin0 + timedelta(hours=0)
+        while t0 <= tmax:
+            if t0 >= tmin: 
+                tt.append(cftime.date2num(t0, tunits))
+                tlabels.append('{0}'.format(t0.hour))
+            t0 = t0 + timedelta(hours=2)
+
+    elif dtlabel == '6h':
+
+        tmin0 = cftime.datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
+        t0 = tmin0 + timedelta(hours=0)
+        while t0 <= tmax:
+            if t0 >= tmin: 
+                tt.append(cftime.date2num(t0, tunits))
+                tlabels.append('{0}'.format(t0.hour))
+            t0 = t0 + timedelta(hours=6)
+        
+    elif dtlabel == '10d':
+
+        tmin0 = cftime.datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
+        t0 = tmin0 + timedelta(hours=0)
+        while t0 <= tmax:
+            if t0 >= tmin:
+                tt.append(cftime.date2num(t0, tunits))
+                tlabels.append('{0}/{1}'.format(t0.month,t0.day))
             if t0.day == 1:
-              t0 = cdtime.comptime(t0.year,t0.month,10,0)
+                t0 = cftime.datetime(t0.year,t0.month,10,0)
             elif t0.day == 10:
-              t0 = cdtime.comptime(t0.year,t0.month,20,0)
+                t0 = cftime.datetime(t0.year,t0.month,20,0)
             elif t0.day == 20:
-              if t0.month == 12:
-                t0 = cdtime.comptime(t0.year+1,1,1,0)
-              else:
-                t0 = cdtime.comptime(t0.year,t0.month+1,1,0)
+                if t0.month == 12:
+                    t0 = cftime.datetime(t0.year+1,1,1,0)
+                else:
+                    t0 = cftime.datetime(t0.year,t0.month+1,1,0)
             else:
-              t0 = t0.add(10,cdtime.Day)
-              #print 't0 unexpected',t0
-              #sys.exit()
-            
+                t0 = t0 + timedelta(days=10)
+
+    else:
+
+        logger.error('dtlabel={} not coded yet'.format(dtlabel))
+        raise NotImplementedError
+
+    return tt, tlabels
+
+def get_level(ds, lev):
+
+    if lev == 'zf':
+        level = ds[lev]
+    elif lev == 'zh':
+        try:
+            level = ds[lev]
+        except:
+            try:
+                level = ds['zf']
+            except:
+                raise
+    elif lev == 'pf':
+        level = ds[lev]
+    elif lev == 'ph':
+        try:
+            level = ds[lev]
+        except:
+            try:
+                level = ds['pf']
+            except:
+                raise
+    else:
+        logger.error('Level unexpected: {0}'.forma(lev))
+        raise NotImplementedError
+
+    return level
+
+def update_level(level, levname, levunits):
+
+    if levname in ['zf','zh']:
+        if levunits == 'm':
+            pass
+        elif levunits == 'km':
+            levelloc = level/1000.
         else:
-          print 'dtlabel={} not coded yet'.format(dtlabel)
-          sys.exit()
-
-        tlabels = tt,tlabels
-
-        if isinstance(namefig,str):
-            tmp = k + '_' + namefig
-        elif isinstance(namefig,dict):
-            tmp = namefig[k]
-        elif namefig is None:
-            tmp = None
+            logger.error('levunits={0} for levname={1} not coded yet'.format(levunits,levname))
+            raise NotImplementedError
+    elif levname in ['pf','ph']:
+        if levunits == 'Pa':
+            pass
+        elif levunits == 'hPa':
+            levelloc = level/100.
         else:
-            print 'namefig type unexpected:', namefig
-            sys.exit()
+            logger.error('levunits={} for levname={1} not coded yet'.format(levunits,levname))
+            raise NotImplementedError
+    else:
+        logger.error('levname={} not coded yet'.format(levname))
+        raise NotImplementedError
 
-        kwargs['title'] = '{0} - {1}'.format(title0,k)
+    return levelloc
 
-        plotutils.plot2D(X,Y,ma.transpose(data[k]),\
-            xmin = tmin.torel(time[k].units).value,\
-            xmax = tmax.torel(time[k].units).value,\
-            xlabels=tlabels,\
-            namefig=tmp,\
-            **kwargs)
-
-#def getvarnames(var,fin,varnames,coefs,coef=1):
-#  varloc = {}
-#  for sim in fin.keys():
-#    try:
-#      varloc[sim] = varnames[sim][var]
-#    except:
-#      varloc[sim] = var
-#
-#  coefloc = {}
-#  for sim in fin.keys():
-#    try:
-#      coefloc[sim] = coefs[sim][var]
-#    except:
-#      coefloc[sim] = coef
-#
-#  return varloc,coefloc
-#
-#def getlines(fin,lines):
-#  ll = ['r','g','b']
-#  lineloc = {}
-#  i = 0
-#  for sim in fin.keys():
-#    try:
-#      lineloc[sim] = lines[sim]
-#    except:
-#      lineloc[sim] = ll[i]
-#      i = i + 1
-#
-#  return lineloc

@@ -4,6 +4,9 @@
 import os, sys
 sys.path = ['./','../config/'] + sys.path
 
+import logging
+logger = logging.getLogger(__name__)
+
 import json
 
 from Model import save_all as save_all_models 
@@ -26,7 +29,7 @@ class Simulation:
 
         if name  is None or model   is None or\
            case  is None or subcase is None:
-            print 'ERROR: name, model, case andsubcase must be defined'
+            logger.error('name, model, case andsubcase must be defined')
             raise ValueError
 
         self.id = '{0}/{1}/{2}/{3}'.format(name,model.id,case,subcase)
@@ -83,27 +86,27 @@ class Simulation:
     def info(self):
 
         self.model.info()
-        print '--- Simulation {0} ---'.format(self.name)
-        print 'Case simulated: {0}/{1}'.format(self.case,self.subcase)
-        print 'ncfile: ', self.ncfile
-        print 'Atmospheric namelist:', self.namATM
-        print 'SURFEX namelist:', self.namSFX
-        print 'Comment:', self.comment
-        print 'varnames:', self.varnames
-        print 'coefs:', self.coefs
-        print "line for plots: '{0}'".format(self.line)
+        print('--- Simulation {0} ---'.format(self.name))
+        print('Case simulated: {0}/{1}'.format(self.case,self.subcase))
+        print('ncfile: ', self.ncfile)
+        print('Atmospheric namelist:', self.namATM)
+        print('SURFEX namelist:', self.namSFX)
+        print('Comment:', self.comment)
+        print('varnames:', self.varnames)
+        print('coefs:', self.coefs)
+        print("line for plots: '{0}'".format(self.line))
 
     def add2known(self,overwrite=False):
 
         if self.id in _known_simulations.keys():
             if overwrite:
-                print 'WARNING: Simulation {0} is already known'.format(self.name)
-                print 'WARNING: it is overwritten'
+                logger.warning('Simulation {0} is already known'.format(self.name))
+                logger.warning('it is overwritten')
                 _known_simulations[self.id] = self
             else:
-                print 'ERROR: Simulation {0} is already known'.format(self.name)
-                print 'You can overwrite it using overwrite argument'
-                sys.exit()
+                logger.error('Simulation {0} is already known'.format(self.name))
+                logger.error('You can overwrite it using overwrite argument')
+                raise ValueError
         else:
             _known_simulations[self.id] = self
 
@@ -120,8 +123,8 @@ def save_all(overwrite=False):
     fileout = "{0}/known_simulations.json".format(_dir_path)
     if not(overwrite):
         if os.path.exists(fileout):
-            print "ERROR: Can't overwrite existing json file containing known simulations"
-            sys.exit()
+            logger.error("Can't overwrite existing json file containing known simulations")
+            raise ValueError
 
     save_all_model()
 
@@ -148,7 +151,7 @@ def load_all(overwrite=False):
     with open(filein) as json_file:
         data = json.load(json_file)
         for name in data.keys():
-            print name
+            logger.info(name)
             data['model'] = get_model(data[model])
             sim = Simulation(**data[name])
             sim.add2known(overwrite=overwrite)
@@ -156,8 +159,8 @@ def load_all(overwrite=False):
 
 def discover():
 
-    print 'ERROR: not updated'
-    sys.exit()
+    logger.error('not updated')
+    raise NotImplementedError
 
     binVersions = os.listdir('{0}/simulations/'.format(_rep_MUSC))
     try:

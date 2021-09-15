@@ -5,6 +5,9 @@ import os, sys
 sys.path = ['../config/'] + sys.path
 import shutil
 
+import logging
+logger = logging.getLogger(__name__)
+
 from collections import OrderedDict
 
 import json
@@ -53,48 +56,48 @@ class Diagnostic:
         if diag_type in know_diagnostics:
             self.diag_type = diag_type
         else:
-            print 'ERROR: Diagnostic {0} is not known'
-            print 'Known diagnostics are:', _known_diagnostics
+            logger.error('Diagnostic {0} is not known')
+            logger.error('Known diagnostics are:', _known_diagnostics)
             for d in _know_diagnostics:
-                print '{0}: {1}'.format(d,_diag_names[d])            
-            raise ValueError #sys.exit()
+                logger.error('{0}: {1}'.format(d,_diag_names[d]))
+            raise ValueError
 
     def info(self):
-        print '-'*10
-        print 'Diagnostic type: {0} ({1})'.format(self.diag_type,_diag_names[self.diag_type])
-        print 'Diagnostic variable:', self.variable
-        print 'Diagnostic plot details:'
+        print('-'*10)
+        print('Diagnostic type: {0} ({1})'.format(self.diag_type,_diag_names[self.diag_type]))
+        print('Diagnostic variable:', self.variable)
+        print('Diagnostic plot details:')
         for att in ['tmin','tmax','dtlabel','xname','ymin','ymax','yname','levunits','levels','extend','cmap']: 
             if att in self.plot_details.keys():
                 if att == 'cmap':
-                    print ' '*5, '{0}:'.format(att), self.plot_details[att].name                
+                    print(' '*5, '{0}:'.format(att), self.plot_details[att].name)
                 else:
-                    print ' '*5, '{0}:'.format(att), self.plot_details[att]
+                    print(' '*5, '{0}:'.format(att), self.plot_details[att])
 
     def printOutput(self):
         if self.output is None:
-            print 'Diagnostic {0}/{1}: No output'.format(self.diag_type,self.variable)
+            print('Diagnostic {0}/{1}: No output'.format(self.diag_type,self.variable))
         else:
-            print 'Diagnostic {0}/{1}, output:'.format(self.diag_type,self.variable)
+            print('Diagnostic {0}/{1}, output:'.format(self.diag_type,self.variable))
             try:
                 for key,value in self.output.items():
-                    print '    {0}: {1}'.format(key,value)
+                    print('    {0}: {1}'.format(key,value))
             except AttributeError:
-                print '    {0}'.format(self.output)
+                print('    {0}'.format(self.output))
             except:
                raise        
 
     def printError(self):
         if self.error == {}:
-            print 'Diagnostic {0}/{1}: No error'.format(self.diag_type,self.variable)
+            print('Diagnostic {0}/{1}: No error'.format(self.diag_type,self.variable))
         else:
-            print 'Diagnostic {0}/{1}, error with the following datasets:'.format(self.diag_type,self.variable),
-            print [key for key in self.error.keys()]
+            print('Diagnostic {0}/{1}, error with the following datasets:'.format(self.diag_type,self.variable))
+            print([key for key in self.error.keys()])
 
     def run(self,datasets,root_dir=None,lcompute=True):
 
         if root_dir is None:
-            print 'ERROR: root_dir is None for DiagGroup {0}'.format(self.name)
+            logger.error('root_dir is None for DiagGroup {0}'.format(self.name))
             raise ValueError
 
         if not(os.path.exists(root_dir)):
@@ -110,15 +113,15 @@ class Diagnostic:
                 for dat in datasets:
                     fin = dat.ncfile
                     fout = '{0}/{1}.nc'.format(tmp_dir,dat.name)
-                    shutil.copy(fin,fout)
                     try:
-                        compute(fout,self.variable)
+                        compute(fin, fout, self.variable)
                         ncfiles[dat.name] = fout
-                    except Exception as e:
-                        if lverbose:
-                            print e
+                    except (KeyError, AttributeError) as e:
+                        logger.debug(e)
                         ncfiles[dat.name] = dat.ncfile
                         pass
+                    except:
+                        raise
             else:
                 for dat in datasets:
                     ncfiles[dat.name] = dat.ncfile  
@@ -126,11 +129,11 @@ class Diagnostic:
             varloc = {}
             coefloc = {}
             for dat in datasets:
-                if dat.varnames.has_key(self.variable):
+                if self.variable in dat.varnames:
                     varloc[dat.name] = dat.varname[self.variable]
                 else:
                     varloc[dat.name] = self.variable
-                if dat.coefs.has_key(self.variable):
+                if self.variable in dat.coefs:
                     coefloc[dat.name] = dat.coefs[self.variable]
                 else:
                     coefloc[dat.name] = variables_info[self.variable]['coef']
@@ -199,8 +202,8 @@ class Diagnostic:
         ############ Instantaneous vertical profile plot
         elif self.diag_type == 'plotInstP':
 
-            print 'ERROR: Not coded yet'
-            raise ValueError #sys.exit()
+            logger.error('Not coded yet')
+            raise NotImplementedError
 
         ############ Time-averaged vertical profile plot
         elif self.diag_type == 'plotAvgP':
@@ -257,11 +260,11 @@ class Diagnostic:
 
         ############ Unknown diagnostic
         else:
-            print 'ERROR: Diagnostic {0} is not known'
-            print 'Known diagnostics are:', _known_diagnostics
+            logger.error('Diagnostic {0} is not known')
+            logger.error('Known diagnostics are:', _known_diagnostics)
             for d in _know_diagnostics:
-                print '{0}: {1}'.format(d,_diag_names[d])
-            raise ValueError #sys.exit()
+                logger.error('{0}: {1}'.format(d,_diag_names[d]))
+            raise ValueError
 
 
         if lcompute:

@@ -5,7 +5,7 @@ sys.path = ['./','../utils/'] + sys.path
 
 from collections import OrderedDict
 
-import cdtime
+from datetime import datetime, timedelta
 from matplotlib import cm # for colormaps
 
 from Dataset import Dataset
@@ -15,10 +15,10 @@ from Dataset import Dataset
 ####################################
 
 tmp = OrderedDict([
-       ('LES_5min',{'ncfile': '/Users/romainroehrig/data/LES/ARMCU/ARMCU_LES_MESONH_RR.nc',           'line': 'k'}),
-       ('BLM_cor', {'ncfile': '/Users/romainroehrig/data/HighTune/LES/ARMCU_BOMEX_BLM/ARMCU_cor.nc',  'line': 'k.'}),
-       ('BLM_cld', {'ncfile': '/Users/romainroehrig/data/HighTune/LES/ARMCU_BOMEX_BLM/ARMCU_cld.nc',  'line': 'b.'}),
-       ('BLM_csam',{'ncfile': '/Users/romainroehrig/data/HighTune/LES/ARMCU_BOMEX_BLM/ARMCU_csam.nc', 'line': 'g.'}),
+       ('LES_5min',{'ncfile': '/Users/romain/data/LES/ARMCU/ARMCU_LES_MESONH_RR.nc',           'line': 'k'}),
+       ('BLM_cor', {'ncfile': '/Users/romain/data/LES/ARMCU_BOMEX_BLM/ARMCU_cor.nc',  'line': 'k.'}),
+       ('BLM_cld', {'ncfile': '/Users/romain/data/LES/ARMCU_BOMEX_BLM/ARMCU_cld.nc',  'line': 'b.'}),
+       ('BLM_csam',{'ncfile': '/Users/romain/data/LES/ARMCU_BOMEX_BLM/ARMCU_csam.nc', 'line': 'g.'}),
        ])
 
 references = []
@@ -29,8 +29,8 @@ for ref in tmp.keys():
 # Configuration file for ARMCU atlas
 ####################################
 
-tmin = cdtime.comptime(1997,6,21,11)
-tmax = cdtime.comptime(1997,6,22,2)
+tmin = datetime(1997,6,21,11)
+tmax = datetime(1997,6,22,2)
 
 diagnostics = OrderedDict([
     ("2D_dyn",{
@@ -45,7 +45,7 @@ diagnostics = OrderedDict([
         'dtlabel'  : '1h'                ,
         'xname'    : '21 June 1997 (UTC)',
         'variables': OrderedDict([
-            ('u', {'levels': range(0,12,1)                 , 'extend':'both'}),
+            ('u', {'levels': list(range(0,12,1))                 , 'extend':'both'}),
             ('v', {'levels': [i*0.5 for i in range(-6,7,1)], 'extend':'both'}),
         ]),
     }), # end 2D_dyn
@@ -62,8 +62,8 @@ diagnostics = OrderedDict([
         'dtlabel'  : '1h'                ,
         'xname'    : '21 June 1997 (UTC)',
         'variables': OrderedDict([
-            ('theta', {'levels': range(300,321,1)   , 'extend':'both'                    }),
-            ('qv'   , {'levels': [0] + range(4,18,1), 'extend':'max', 'cmap': cm.RdBu }),
+            ('theta', {'levels': list(range(300,321,1))   , 'extend':'both'                    }),
+            ('qv'   , {'levels': [0] + list(range(4,18,1)), 'extend':'max', 'cmap': cm.RdBu }),
         ]),
     }), # end 2D_thermo
     #######################
@@ -95,8 +95,8 @@ diagnostics = OrderedDict([
         'dtlabel'  : '1h'                ,
         'xname'    : '21 June 1997 (UTC)',
         'variables': OrderedDict([
-            ('rneb', {'levels': [0,1] + range(4,21,2)         , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
-            ('ql'  , {'levels': range(0,41,4)                 , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('rneb', {'levels': [0,1] + list(range(4,21,2))         , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('ql'  , {'levels': list(range(0,41,4))                 , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
             ('qr'  , {'levels': [i*0.4 for i in range(0,11,1)], 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
         ]),
     }), # end 2D_cloud
@@ -118,15 +118,15 @@ diagnostics = OrderedDict([
     }), # end TS_cloud  
     #######################
     ("hour7-8_basic",{
-        'head'     : 'Basic 7-8h'           ,
-        'type'     : 'plotAvgP'             ,
-        'tmin'     : tmin.add(7,cdtime.Hour),
-        'tmax'     : tmin.add(8,cdtime.Hour),  
-        'ymin'     : 0.                     ,
-        'ymax'     : 4.                     ,
-        'yname'    : 'altitude (km)'        ,
-        'levunits' : 'km'                   ,
-        'rtitle'   : '7-8 hour'             ,        
+        'head'     : 'Basic 7-8h'            ,
+        'type'     : 'plotAvgP'              ,
+        'tmin'     : tmin + timedelta(hours=7),
+        'tmax'     : tmin + timedelta(hours=8),  
+        'ymin'     : 0.                      ,
+        'ymax'     : 4.                      ,
+        'yname'    : 'altitude (km)'         ,
+        'levunits' : 'km'                    ,
+        'rtitle'   : '7-8 hour'              ,        
         'variables': OrderedDict([
             ('u',        {'xmin':    0.  , 'xmax':  12. , 'init':True }),
             ('v',        {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
@@ -139,15 +139,15 @@ diagnostics = OrderedDict([
     }), # end hour7-8_basic   
     #######################
     ("hour9-10_basic",{
-        'head'     : 'Basic 9-10h'           ,
-        'type'     : 'plotAvgP'              ,
-        'tmin'     : tmin.add(9,cdtime.Hour) ,
-        'tmax'     : tmin.add(10,cdtime.Hour),  
-        'ymin'     : 0.                      ,
-        'ymax'     : 4.                      ,
-        'yname'    : 'altitude (km)'         ,
-        'levunits' : 'km'                    ,
-        'rtitle'   : '9-10 hour'             ,        
+        'head'     : 'Basic 9-10h'            ,
+        'type'     : 'plotAvgP'               ,
+        'tmin'     : tmin + timedelta(hours=9) ,
+        'tmax'     : tmin + timedelta(hours=10),  
+        'ymin'     : 0.                       ,
+        'ymax'     : 4.                       ,
+        'yname'    : 'altitude (km)'          ,
+        'levunits' : 'km'                     ,
+        'rtitle'   : '9-10 hour'              ,        
         'variables': OrderedDict([
             ('u',        {'xmin':    0.  , 'xmax':  12. , 'init':True }),
             ('v',        {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
@@ -182,15 +182,15 @@ diagnostics = OrderedDict([
     }), # end 2D_conv
     #######################
     ("hour7-8_conv",{
-        'head'     : 'Convection 7-8h'      ,
-        'type'     : 'plotAvgP'             ,
-        'tmin'     : tmin.add(7,cdtime.Hour),
-        'tmax'     : tmin.add(8,cdtime.Hour),  
-        'ymin'     : 0.                     ,
-        'ymax'     : 4.                     ,
-        'yname'    : 'altitude (km)'        ,
-        'levunits' : 'km'                   ,
-        'rtitle'   : '7-8 hour'             ,        
+        'head'     : 'Convection 7-8h'       ,
+        'type'     : 'plotAvgP'              ,
+        'tmin'     : tmin + timedelta(hours=7),
+        'tmax'     : tmin + timedelta(hours=8),
+        'ymin'     : 0.                      ,
+        'ymax'     : 4.                      ,
+        'yname'    : 'altitude (km)'         ,
+        'levunits' : 'km'                    ,
+        'rtitle'   : '7-8 hour'              ,        
         'variables': OrderedDict([
             ('w_up',     {'xmin':    0.  , 'xmax':   4.               }),
             ('alpha_up', {'xmin':    0.  , 'xmax':  25.               }),
@@ -203,15 +203,15 @@ diagnostics = OrderedDict([
     }), # end hour7-8_conv
     #######################
     ("hour9-10_conv",{
-        'head'     : 'Convection 9-10h'      ,
-        'type'     : 'plotAvgP'              ,
-        'tmin'     : tmin.add(9,cdtime.Hour) ,
-        'tmax'     : tmin.add(10,cdtime.Hour),  
-        'ymin'     : 0.                      ,
-        'ymax'     : 4.                      ,
-        'yname'    : 'altitude (km)'         ,
-        'levunits' : 'km'                    ,
-        'rtitle'   : '9-10 hour'             ,        
+        'head'     : 'Convection 9-10h'       ,
+        'type'     : 'plotAvgP'               ,
+        'tmin'     : tmin + timedelta(hours=9) ,
+        'tmax'     : tmin + timedelta(hours=10),
+        'ymin'     : 0.                       ,
+        'ymax'     : 4.                       ,
+        'yname'    : 'altitude (km)'          ,
+        'levunits' : 'km'                     ,
+        'rtitle'   : '9-10 hour'              ,        
         'variables': OrderedDict([
             ('w_up',     {'xmin':    0.  , 'xmax':   4.               }),
             ('alpha_up', {'xmin':    0.  , 'xmax':  25.               }),

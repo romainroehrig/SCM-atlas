@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
-import os, sys
-#sys.path = ['./','../config/'] + sys.path
+import os
+
+import logging
+logger = logging.getLogger(__name__)
 
 import json
 
@@ -22,8 +24,8 @@ class Dataset:
 
         if name  is None or\
            case  is None or subcase    is None:
-            print 'ERROR: name, case and subcase must be defined'
-            raise ValueError #sys.exit()
+            logger.error('name, case and subcase must be defined')
+            raise ValueError
 
         self.id = '{0}/{1}/{2}'.format(name,case,subcase)
         self.name = name
@@ -45,25 +47,25 @@ class Dataset:
 
     def info(self):
 
-        print '--- Dataset {0} ---'.format(self.name)
-        print 'Case: {0}/{1}'.format(self.case,self.subcase)
-        print 'ncfile: ', self.ncfile
-        print 'Comment:', self.comment
-        print 'varnames:', self.varnames
-        print 'coefs:', self.coefs
-        print "line for plots: '{0}'".format(self.line)
+        print('--- Dataset {0} ---'.format(self.name))
+        print('Case: {0}/{1}'.format(self.case,self.subcase))
+        print('ncfile: ', self.ncfile)
+        print('Comment:', self.comment)
+        print('varnames:', self.varnames)
+        print('coefs:', self.coefs)
+        print("line for plots: '{0}'".format(self.line))
 
     def add2known(self,overwrite=False):
 
         if self.id in _known_datasets.keys():
             if overwrite:
-                print 'WARNING: Dataset {0} is already known'.format(self.name)
-                print 'WARNING: it is overwritten'
+                logger.warning('Dataset {0} is already known'.format(self.name))
+                logger.warning('it is overwritten')
                 _known_datasets[self.id] = self
             else:
-                print 'ERROR: Dataset {0} is already known'.format(self.name)
-                print 'You can overwrite it using overwrite argument'
-                raise ValueError #sys.exit()
+                logger.error('Dataset {0} is already known'.format(self.name))
+                logger.error('You can overwrite it using overwrite argument')
+                raise ValueError
         else:
             _known_datasets[self.id] = self
 
@@ -78,8 +80,8 @@ def save_all(overwrite=False):
     fileout = "{0}/known_datasets.json".format(_dir_path)
     if not(overwrite):
         if os.path.exists(fileout):
-            print "ERROR: Can't overwrite existing json file containing known datasets"
-            sys.exit()
+            logger.error("Can't overwrite existing json file containing known datasets")
+            raise ValueError
 
     data2save = {}
     for dat in _known_datasets.keys():
@@ -101,7 +103,7 @@ def load_all(overwrite=False):
     with open(filein) as json_file:
         data = json.load(json_file)
         for dat in data.keys():
-            print name
+            logger.info(name)
             dat = Dataset(**data[name])
             dat.add2known(overwrite=overwrite)
 

@@ -4,6 +4,9 @@
 import os, sys
 sys.path = ['../config/',] + sys.path
 
+import logging
+logger = logging.getLogger(__name__)
+
 from collections import OrderedDict
 
 from Diagnostic import Diagnostic
@@ -28,8 +31,8 @@ class DiagGroup:
         self.datasets = None
 
     def info(self):
-        print '*'*20
-        print 'Group of diagnostic:', self.name
+        print('*'*20)
+        print('Group of diagnostic:', self.name)
         for diag in self.diaglist:
             diag.info()
 
@@ -39,10 +42,10 @@ class DiagGroup:
 
     def init_from_dict(self,diagnostics):
 
-        if diagnostics.has_key('head'):
+        if 'head' in diagnostics:
             self.head = diagnostics['head']
 
-        if diagnostics.has_key('type'): # all diagnostic of this group are of same type
+        if 'type' in diagnostics: # all diagnostic of this group are of same type
             diag_type = diagnostics['type']
             plotdico0 = {}
             for att in diagnostics.keys():
@@ -58,27 +61,27 @@ class DiagGroup:
                 self.add_diag(diag) 
 
         else:
-            print 'ERROR: not coded yet'
-            raise ValueError #sys.exit()   
+            logger.error('not coded yet')
+            raise NotImplementedError 
 
     def printOutput(self):
 
-        print '-'*40
-        print '--- Output for group of diagnostics {0}:'.format(self.name)
+        print('-'*40)
+        print('--- Output for group of diagnostics {0}:'.format(self.name))
         for diag in self.diaglist:
             diag.printOutput()
 
     def printError(self):
 
-        print '-'*40
-        print '--- Errors for group of diagnostics {0}:'.format(self.name)
+        print('-'*40)
+        print('--- Errors for group of diagnostics {0}:'.format(self.name))
         for diag in self.diaglist:
             diag.printError()
 
     def run(self,datasets,root_dir=None,lcompute=True):
 
         if root_dir is None:
-            print 'ERROR: root_dir is None for DiagGroup {0}'.format(self.name)
+            logger.error('root_dir is None for DiagGroup {0}'.format(self.name))
             raise ValueError
         
         loc_dir = '{0}/{1}'.format(root_dir,self.name)
@@ -94,7 +97,7 @@ class DiagGroup:
     def tohtml(self,index=None,root_dir=None):
 
         if root_dir is None:
-            print 'ERROR: root_dir is None for DiagGroup {0}'.format(self.name)
+            logger.error('root_dir is None for DiagGroup {0}'.format(self.name))
             raise ValueError
 
         diag_dir = '{0}/{1}'.format(root_dir,self.name)
@@ -119,23 +122,23 @@ class DiagGroup:
         if all2D:
             for diag in self.diaglist:
                 f.write('<ul><li><h3><span style="text-decoration: underline;"><strong>{0}</strong></span></h3></li></ul>\n'.format(diag.name))
-                diags = diag.output.keys()
+                diags = list(diag.output.keys())
                 ndiag = len(diags)
                 if ndiag % 4 == 0:
-                    nlines = ndiag/ndiag_per_line
+                    nlines = ndiag//ndiag_per_line
                 else:
-                    nlines = ndiag/ndiag_per_line+1
+                    nlines = ndiag//ndiag_per_line+1
                 for i in range(0,nlines):
                     f.write('<table><tr>\n')
                     i1 = i*ndiag_per_line
                     i2 = min((i+1)*ndiag_per_line,ndiag)
-                    for j in range(i1,i2): #0o in diag.output.keys():
+                    for j in range(i1,i2):
                         f.write('<td> <img src="file://{0}" style="width: {1}px;"/> </td>\n'.format(diag.output[diags[j]],width))
                     f.write('</tr></table>\n')
         elif all1D:
             nplot_per_line = 4
             nplot = len(self.diaglist)
-            nlines = nplot/nplot_per_line
+            nlines = nplot//nplot_per_line
             for i in range(0,nlines+1):
                 f.write('<table><tr>\n')
                 for j in range(0,nplot_per_line):
@@ -143,8 +146,8 @@ class DiagGroup:
                         f.write('<td> <img src="file://{0}" style="width: {1}px;"/> </td>\n'.format(self.diaglist[i*nplot_per_line+j].output,width))
                 f.write('</tr></table>\n')
         else:
-            print 'ERROR: mixed case not coded yet'
-            raise ValueError
+            logger.error('mixed case not coded yet')
+            raise NotImplementedError
 
         f.close()
 

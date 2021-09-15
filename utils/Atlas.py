@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
-import os#, sys
+import os
+
+import logging
+logger = logging.getLogger(__name__)
 
 from collections import OrderedDict
-
-from pylatex import Document, Figure, SubFigure, NoEscape, Command,\
-        PageStyle, Head, Foot, NewPage, simple_page_number, Package
-from pylatex.utils import bold
 
 from DiagGroup import DiagGroup
 
@@ -22,8 +21,8 @@ class Atlas:
         self.name = name
 
         if references == {} and simulations == {}:
-            print 'ERROR: you must give at least one reference or one simulation'
-            raise ValueError #sys.exit()
+            logger.error('you must give at least one reference or one simulation')
+            raise ValueError
 
         # Reference datasets
         self.references = references
@@ -50,7 +49,7 @@ class Atlas:
         if root_dir[0] == '/':
             self.atlas_dir = '{0}/{1}'.format(root_dir,self.name)
         else:
-            print 'ERROR: root directory is expected to be given with an absolute path. root_dir=', root_dir
+            logger.error('root directory is expected to be given with an absolute path. root_dir=', root_dir)
             raise ValueError
 
         if not(os.path.exists(self.atlas_dir)):
@@ -80,18 +79,18 @@ class Atlas:
 
 
     def info(self,groups=False,references=False,simulations=False):
-        print '#'*30
-        print 'Atlas:', self.name
+        print('#'*30)
+        print('Atlas:', self.name)
         if references:
-            print '#'*10, 'References:'
+            print('#'*10, 'References:')
             for ref in self.references:
                 ref.info()
         if simulations:
-            print '#'*10, 'Simulations:'
+            print('#'*10, 'Simulations:')
             for sim in self.simulations:
                 sim.info()
         if groups:
-            print '#'*10, 'Groups of diagnostics:'
+            print('#'*10, 'Groups of diagnostics:')
             for group in self.grouplist:
                 group.info()        
 
@@ -109,15 +108,15 @@ class Atlas:
     
     def printOutput(self):
 
-        print '#'*40
-        print '--- Output for atlas "{0}"'.format(self.name)
+        print('#'*40)
+        print('--- Output for atlas "{0}"'.format(self.name))
         for group in self.grouplist:
             group.printOutput()
 
     def printError(self):
 
-        print '#'*40
-        print '--- Error for atlas "{0}"'.format(self.name)
+        print('#'*40)
+        print('--- Error for atlas "{0}"'.format(self.name))
         for group in self.grouplist:
             group.printError()
 
@@ -128,9 +127,9 @@ class Atlas:
         subcase = self.datasets[0].subcase
         for dat in self.datasets:
             if not(dat.case == case) and not(dat.subcase == subcase):
-                print 'ERROR: all datasets must be for the same CASE/SUBCASE'
-                print 'ERROR: {0} is for {1}/{2}'.format(dat0.name,case,subcase)
-                print 'ERROR: {0} is for {1}/{2}'.format(dat.name,dat.case,dat.subcase)
+                logger.error('all datasets must be for the same CASE/SUBCASE')
+                logger.error('{0} is for {1}/{2}'.format(dat0.name,case,subcase))
+                logger.error('{0} is for {1}/{2}'.format(dat.name,dat.case,dat.subcase))
                 return False
 
         return True
@@ -141,6 +140,7 @@ class Atlas:
             raise ValueError('Atlas not valid')
 
         for group in self.grouplist:
+            logger.info('Running atlas diagnostic group ' + group.name)
             group.run(self.datasets,root_dir=self.diag_dir,lcompute=lcompute)
 
         # synthesis of output
@@ -153,8 +153,16 @@ class Atlas:
 
     def topdf(self,pdfname=None):
 
+        from pylatex import Document, Figure, SubFigure, NoEscape, Command,\
+            PageStyle, Head, Foot, NewPage, simple_page_number, Package
+        from pylatex.utils import bold
+
+        logger.info('Preparing pdf file for atlas ' + self.name)
+
         if pdfname is None:
             pdfname = self.pdfname
+
+        logger.info('PDF file is ' + pdfname)
 
         filename = pdfname[:-4]
 
@@ -217,7 +225,7 @@ class Atlas:
                                     subfig.add_image(group.diaglist[i*nplot_per_line+j].output,width=NoEscape(r'\linewidth'))
 
             else:
-                print 'ERROR: mixed case not coded yet'
+                logger.error('mixed case not coded yet')
                 raise ValueError
 
             doc.append(NoEscape(r'\clearpage'))
@@ -227,6 +235,8 @@ class Atlas:
         os.system('mv {0}.pdf {1}/'.format(filename,self.pdf_dir))
 
     def tohtml(self,index=None):
+
+        logger.info('Preparing html interface to atlas ' + self.name)
 
         if index is None:
             index = '{0}/index.html'.format(self.html_dir)
