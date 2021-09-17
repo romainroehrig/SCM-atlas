@@ -1,10 +1,14 @@
-# SCM-atlas - Tools to prepare atlas of SCM simulation
+# SCM-atlas - Preparing atlas of SCM simulations
 
 ## Prerequisites
 
-* 3.7 or higher
-* Python packages numpy, netCDF4 and matplotlib, xarray
-* Optional pylatex[https://jeltef.github.io/PyLaTeX/latest/] to prepare atlas pdf files.
+* Python 3.7 or higher
+* Python packages:
+    numpy
+    netCDF4
+    xarray
+    matplotlib
+    Optional: [pylatex](https://jeltef.github.io/PyLaTeX/latest/) to prepare atlas pdf files.
 
 ## Quick installation
 To install SCM-atlas on a CNRM computer, with access to the CNRM Lustre system:
@@ -19,11 +23,11 @@ To install SCM-atlas on a CNRM computer, with access to the CNRM Lustre system:
    * Set where you want to run SCM-atlas tools: default is `DIR_RUN=$HOME/Atlas1D/V${ATLAS_VERSION}`
    * Set where the reference datasets (e.g., LES) can be found: default is `DIR_REF=/cnrm/amacs/USERS/roehrig/share/SCM-atlas/References/V1.0`
 
-3. Execute `install.sh`. A test is done at the end with provided SCM simulation with ARPEGE-Climat 6.3.1 for the ARMCU/REF, RICO/SHORT and SANDU/REF cases. Check the output atlas at the link provided at the end of the test.
+3. Execute `install.sh`. A test is done at the end with provided SCM simulations with ARPEGE-Climat 6.3.1 for the ARMCU/REF, RICO/SHORT and SANDU/REF cases. Check the output atlas at the link provided at the end of the test.
 
 ## Using SCM-atlas
 1. Go in the `DIR_RUN` directory
-2. Source setenv to have the right PATH and PYTHONPATH environment variables
+2. Source setenv to have the right `PATH`, `PYTHONPATH` and `SCM_REFERENCES` environment variables
 
    `source setenv`
 
@@ -33,4 +37,4 @@ To install SCM-atlas on a CNRM computer, with access to the CNRM Lustre system:
 
    `run_atlas1d.py -config config/YOUR_CONFIG_FILE`
 
-   You can add the option --pdf to export pdf files for each case.
+   You can add the option `--pdf` to export pdf files for each case.
