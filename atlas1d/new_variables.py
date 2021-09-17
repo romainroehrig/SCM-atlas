@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
 import logging
 logger = logging.getLogger(__name__)
@@ -7,7 +10,8 @@ logger = logging.getLogger(__name__)
 import numpy as np
 import xarray as xr
 
-import constants as cc
+import atlas1d
+import atlas1d.constants as cc
 
 encoding = {'dtype': 'float32', '_FillValue': np.float32(cc.missing)}
 

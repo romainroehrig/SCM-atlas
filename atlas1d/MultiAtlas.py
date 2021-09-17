@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
-import os, sys
-sys.path = ['../config/',] + sys.path
+import os
 import importlib
 
 import logging
@@ -10,14 +12,12 @@ logger = logging.getLogger(__name__)
 
 from collections import OrderedDict
 
-from Atlas import Atlas
-
-_dir_home = os.getenv('HOME')
-_default_dirout = '{0}/SCM_atlas'.format(_dir_home)
+import atlas1d
+from atlas1d.Atlas import Atlas
 
 class MultiAtlas:
 
-    def __init__(self,name,simulations={},root_dir=_default_dirout,linfo=False):
+    def __init__(self,name,simulations={},root_dir=atlas1d._default_dirout,linfo=False):
 
         self.name = name
 
@@ -66,13 +66,16 @@ class MultiAtlas:
             for subcase in simulations[case]:
                 self.subcases[case].append(subcase)
 
-                if os.path.isfile('config/config_{0}_{1}.py'.format(case,subcase)):
-                    config = importlib.import_module('config_{0}_{1}'.format(case,subcase))
-                elif os.path.isfile('config/config_{0}.py'.format(case)):
-                    config = importlib.import_module('config_{0}'.format(case))
-                else:
-                    logger.error('Cannot find a config files in ../config/ for case {0}, subcase {1}'.format(case,subcase))
-                    raise ValueError
+                try:
+                    config = importlib.import_module('atlas_{0}_{1}'.format(case,subcase))
+                except:
+                    try:
+                        config = importlib.import_module('atlas_{0}'.format(case))
+                    except:
+                        logger.error('Cannot find a atlas config files in {0}/../default_atlas/ for case {1}, subcase {2}'.format(
+                            atlas1d._dir_atlas_config_default,case,subcase))
+                        logger.error('or in user-defined ATLAS_CONFIG directory: {0}'.format(atlas1d._dir_atlas_config))
+                        raise
 
                 tmp = Atlas('{0}/{1}'.format(case,subcase),references=config.references,simulations=simulations[case][subcase],root_dir=self.atlas_dir)
                 tmp.init_from_dict(config.diagnostics)

@@ -1,24 +1,30 @@
-# -*- coding:UTF-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
-import sys
-sys.path = ['./','../utils/'] + sys.path
+import os
 
 from collections import OrderedDict
 
 from datetime import datetime, timedelta
 from matplotlib import cm # for colormaps
 
-from Dataset import Dataset
+import atlas1d
+from atlas1d.Dataset import Dataset
+
+dir_references = os.getenv('SCM_REFERENCES')
 
 ####################################
 # References for ARMCU atlas
 ####################################
 
 tmp = OrderedDict([
-       ('LES_5min',{'ncfile': '/Users/romain/data/LES/ARMCU/ARMCU_LES_MESONH_RR.nc',           'line': 'k'}),
-       ('BLM_cor', {'ncfile': '/Users/romain/data/LES/ARMCU_BOMEX_BLM/ARMCU_cor.nc',  'line': 'k.'}),
-       ('BLM_cld', {'ncfile': '/Users/romain/data/LES/ARMCU_BOMEX_BLM/ARMCU_cld.nc',  'line': 'b.'}),
-       ('BLM_csam',{'ncfile': '/Users/romain/data/LES/ARMCU_BOMEX_BLM/ARMCU_csam.nc', 'line': 'g.'}),
+       ('LES_5min',{'ncfile': os.path.join(dir_references, 'ARMCU/ARMCU_LES_MESONH_RR.nc'),  'line': 'k'}),
+       ('BLM_cor', {'ncfile': os.path.join(dir_references, 'ARMCU_BOMEX_BLM/ARMCU_cor.nc'),  'line': 'k.'}),
+       ('BLM_cld', {'ncfile': os.path.join(dir_references, 'ARMCU_BOMEX_BLM/ARMCU_cld.nc'),  'line': 'b.'}),
+       ('BLM_csam',{'ncfile': os.path.join(dir_references, 'ARMCU_BOMEX_BLM/ARMCU_csam.nc'), 'line': 'g.'}),
        ])
 
 references = []

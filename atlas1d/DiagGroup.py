@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
-import os, sys
-sys.path = ['../config/',] + sys.path
+import os
 
 import logging
 logger = logging.getLogger(__name__)
 
 from collections import OrderedDict
 
-from Diagnostic import Diagnostic
-
-_dir_path = os.path.dirname(os.path.realpath(__file__))
+import atlas1d
+from atlas1d.Diagnostic import Diagnostic
 
 class DiagGroup:
 

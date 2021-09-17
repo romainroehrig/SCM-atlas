@@ -1,23 +1,29 @@
-# -*- coding:UTF-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
-import sys
-sys.path = ['./','../utils/'] + sys.path
+import os
 
 from collections import OrderedDict
 
 from datetime import datetime, timedelta
 from matplotlib import cm # for colormaps
 
-from Dataset import Dataset
+import atlas1d
+from atlas1d.Dataset import Dataset
+
+dir_references = os.getenv('SCM_REFERENCES')
 
 ####################################
 # References for ARMCU atlas
 ####################################
 
 tmp = OrderedDict([
-       ('LES',      {'ncfile': '/Users/romain/data/LES/RICO/RICO_LES_MESONH_RR.nc',      'line': 'k'}),
-       ('LES_core', {'ncfile': '/Users/romain/data/LES/RICO/RICO_LES_MESONH_RR_core.nc', 'line': 'g.'}),
-       ('BLM_csam', {'ncfile': '/Users/romain/data/LES/RICO/RICO_LES_MESONH_RR_csam.nc', 'line': 'k.'}),
+       ('LES',      {'ncfile': os.path.join(dir_references, 'RICO/RICO_LES_MESONH_RR.nc'),      'line': 'k'}),
+       ('LES_core', {'ncfile': os.path.join(dir_references, 'RICO/RICO_LES_MESONH_RR_core.nc'), 'line': 'g.'}),
+       ('BLM_csam', {'ncfile': os.path.join(dir_references, 'RICO/RICO_LES_MESONH_RR_csam.nc'), 'line': 'k.'}),
        ])
 
 references = []

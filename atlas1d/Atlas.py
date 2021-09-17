@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
 import os
 
@@ -8,14 +11,12 @@ logger = logging.getLogger(__name__)
 
 from collections import OrderedDict
 
-from DiagGroup import DiagGroup
-
-_dir_home = os.getenv('HOME')
-_default_dirout = '{0}/SCM_atlas'.format(_dir_home)
+import atlas1d
+from atlas1d.DiagGroup import DiagGroup
 
 class Atlas:
 
-    def __init__(self,name,references={},simulations={},root_dir=_default_dirout):
+    def __init__(self,name,references={},simulations={},root_dir=atlas1d._default_dirout):
 
         # Name of the atlas
         self.name = name

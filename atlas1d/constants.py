@@ -1,5 +1,9 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
+
 """
 Created on 27 November 2019
 

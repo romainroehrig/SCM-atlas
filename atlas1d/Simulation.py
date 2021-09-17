@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
-import os, sys
-sys.path = ['./','../config/'] + sys.path
+import os
 
 import logging
 logger = logging.getLogger(__name__)
 
 import json
 
-from Model import save_all as save_all_models 
-from Model import load_all as load_all_models 
-from Model import get_model
+import atlas1d
+from atlas1d.Model import save_all as save_all_models 
+from atlas1d.Model import load_all as load_all_models 
+from atlas1d.Model import get_model
 
 _dir_path = os.path.dirname(os.path.realpath(__file__))
 _rep_MUSC = os.getenv('REP_MUSC')

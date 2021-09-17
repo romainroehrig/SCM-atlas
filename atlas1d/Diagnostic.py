@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
-import os, sys
-sys.path = ['../config/'] + sys.path
+import os
 import shutil
 
 import logging
@@ -14,10 +16,13 @@ import json
 
 from matplotlib import cm # for colormaps
 
-from variables_info import variables_info, var2compute
-from new_variables import compute
+import atlas1d
+import atlas1d.plotMUSC as plotMUSC
+from atlas1d.new_variables import compute
 
-import plotMUSC
+import sys
+print(sys.path)
+from variables_info import variables_info, var2compute
 
 lverbose = False
 

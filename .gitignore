@@ -5,5 +5,5 @@
 # swp files
 *.swp 
 *.swo
-# Repertoire Perso
-MesAtlas/
+# json files
+*.json

@@ -1,14 +1,13 @@
-# -*- coding:UTF-8 -*-
-
-import sys
-sys.path = ['./','../utils/'] + sys.path
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
 from collections import OrderedDict
 
 from datetime import datetime, timedelta
 from matplotlib import cm # for colormaps
-
-from Dataset import Dataset
 
 ####################################
 # Configuration file for SANDU atlas

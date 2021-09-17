@@ -1,9 +1,15 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
 import logging
 logger = logging.getLogger(__name__)
 
 from collections import OrderedDict
 
+import math
 import numpy as np
 import numpy.ma as ma
 import xarray as xr
@@ -11,18 +17,9 @@ import xarray as xr
 from datetime import timedelta
 import cftime
 
-import math
-
-import time as TT
-
-import plotutils
-
-import constants as cc
-
-verbose = False
-lperf = False
-
-missing = cc.missing
+import atlas1d
+import atlas1d.plotutils as plotutils
+import atlas1d.constants as cc
 
 def plot_timeseries(filein,varname,coef=None,units='',tmin=None,tmax=None,dtlabel='1h',error=None,**kwargs):
     """
@@ -38,7 +35,7 @@ def plot_timeseries(filein,varname,coef=None,units='',tmin=None,tmax=None,dtlabe
         with xr.open_dataset(filein[k], use_cftime=True) as ds:
             try:
                 data[k] = np.squeeze(ds[varname[k]].data)*coef[k]
-                data[k] = np.ma.masked_where(data[k] == missing, data[k])
+                data[k] = np.ma.masked_where(data[k] == cc.missing, data[k])
                 time[k] = ds[varname[k]].time.data
                 kref = k
             except KeyError as e:
