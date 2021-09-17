@@ -13,7 +13,7 @@ from atlas1d.Model import Model
 from atlas1d.Simulation import Simulation
 
 
-dir_atlas = '__DIR_RUN__/MesAtlas/'
+dir_atlas = '__DIR_RUN__/MyAtlas/'
 name_atlas = 'TEST'
 
 cases = ['ARMCU', 'RICO', 'SANDU']
