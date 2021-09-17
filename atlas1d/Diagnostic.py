@@ -20,8 +20,6 @@ import atlas1d
 import atlas1d.plotMUSC as plotMUSC
 from atlas1d.new_variables import compute
 
-import sys
-print(sys.path)
 from variables_info import variables_info, var2compute
 
 lverbose = False

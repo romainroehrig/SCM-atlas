@@ -15,7 +15,7 @@ DIR_ATLAS=$HOME/Tools/SCM-atlas/V${ATLAS_VERSION}
 DIR_RUN=$HOME/Atlas1D/V${ATLAS_VERSION}
 
 # Directory where References can be found
-DIR_REF=/Users/romain/data/LES
+DIR_REF=/cnrm/amacs/USERS/roehrig/share/SCM-atlas/References/V1.0
 
 #####################################################
 
