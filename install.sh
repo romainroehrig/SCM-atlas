@@ -6,16 +6,16 @@ set -evx
 # User specific
 
 # SCM-atlas version
-ATLAS_VERSION=TO BE DEFINED
+ATLAS_VERSION=1.0.alpha
 
 # Directory where SCM-atlas is installed
-DIR_ATLAS=$HOME/Tools/SCM-atlas/V${EMS_VERSION}
+DIR_ATLAS=$HOME/Tools/SCM-atlas/V${ATLAS_VERSION}
 
 # Directory where SCM-atlas will be run
-DIR_RUN=$HOME/Atlas1D/V${EMS_VERSION}
+DIR_RUN=$HOME/Atlas1D/V${ATLAS_VERSION}
 
 # Directory where References can be found
-DIR_REF=TO BE DEFINED
+DIR_REF=/Users/romain/data/LES
 
 #####################################################
 
@@ -66,11 +66,13 @@ testing="y"
 
 if [ $testing == "y" ]; then
 
+    source setenv
+
     tmp=$(printf '%s' "$DIR_ATLAS" | sed -e 's/[\/&]/\\&/g')
     sed -i .bak "s/__DIR_ATLAS__/"$tmp"/" $DIR_ATLAS/test/config_test.py
 
     tmp=$(printf '%s' "$DIR_RUN" | sed -e 's/[\/&]/\\&/g')
-    sed -i .bak "s/__DIR_RUN__/"$tmp"/" $DIR_RUN/test/config_test.py
+    sed -i .bak "s/__DIR_RUN__/"$tmp"/" $DIR_ATLAS/test/config_test.py
 
     run_atlas1d.py -config $DIR_ATLAS/test/config_test.py
 
