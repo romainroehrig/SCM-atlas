@@ -1,5 +1,5 @@
-export PATH=__REP_Atlas1D__/apptools:$PATH
-export PYTHONPATH=__REP_Atlas1D__:$PYTHONPATH
+export PATH=__DIR_ATLAS__/apptools:$PATH
+export PYTHONPATH=__DIR_ATLAS__:$PYTHONPATH
 
-export ATLAS_CONFIG=__ATLAS_CONFIG__
-export SCM_REFERENCES=__SCM_REFERENCES__
+export ATLAS_CONFIG=
+export SCM_REFERENCES=__DIR_REF__

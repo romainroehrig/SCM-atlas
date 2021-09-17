@@ -1,5 +1,6 @@
-# Compiled Python files
+# Compiled Python files and cache
 *.pyc
+**/__pycache__
 # Mac files
 **/.DS_Store
 # swp files

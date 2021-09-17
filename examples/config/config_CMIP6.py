@@ -12,35 +12,25 @@ import atlas1d
 from atlas1d.Model import Model
 from atlas1d.Simulation import Simulation
 
+dir_musc = '/Users/romain/MUSC/V2.1.mac'
 
-dir_atlas = '/Users/romain/Atlas1D/V1.0/MesAtlas/'
+dir_atlas = '/Users/romain/Atlas1D/V1.0/MyAtlas/'
 name_atlas = 'CMIP6'
 
-#cases = ['GABLS1','AYOTTE','IHOP','BOMEX','RICO','ARMCU','SANDU','ASTEX']
-#cases = ['ARMCU', 'RICO', 'SANDU']
-cases = ['ARMCU']
+cases = ['ARMCU','RICO','SANDU']
 subcases = OrderedDict([
-        ('GABLS1',['REF']),
-        ('AYOTTE',['00SC','00WC','03SC','05SC','05WC','24SC','24SC']),
-        ('IHOP',  ['REF',]),
-        ('BOMEX', ['REF',]),
         ('RICO' , ['SHORT',]),
         ('ARMCU', ['REF',]),
         ('SANDU', ['REF','SLOW','FAST']),
-        ('ASTEX', ['EUCLIPSE',]),
         ])
 
-model = Model(name='arp631.diag_CMIP6',binVersion='arp631.diag',levgrid='L91',tstep=900)
+model = Model(name='arp631diag_CMIP6',binVersion='arp631diag',levgrid='L91',tstep=900)
 
 simulations = OrderedDict()
 for case in cases:
     simulations[case] = OrderedDict()
     for subcase in subcases[case]:
-#        if case == 'GABLS1':
-#            simulations[case][subcase] = [
-#                    Simulation(name='CMIP6',      model=model2,case=case,subcase=subcase,line='r'),
-#                                         ]
-#        else:
-            simulations[case][subcase] = [
-                    Simulation(name='CMIP6',model=model,case=case,subcase=subcase,line='r',ncfile='/Users/romain/MUSC/V2.1.mac/simulations/V631/arp631_diag_CMIP6/{0}/{1}/Output/netcdf/Out_klevel.nc'.format(case,subcase)),
-                                         ]
+        simulations[case][subcase] = [
+                Simulation(name='CMIP6',model=model,case=case,subcase=subcase,line='r',
+                    ncfile=os.path.join(dir_musc,'simulations/V631/arp631_diag_CMIP6',case,subcase,'Output/netcdf/Out_klevel.nc',
+                        ]
