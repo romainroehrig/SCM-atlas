@@ -32,5 +32,5 @@ for case in cases:
     for subcase in subcases[case]:
         simulations[case][subcase] = [
                 Simulation(name='CMIP6',model=model,case=case,subcase=subcase,line='r',
-                    ncfile=os.path.join(dir_musc,'simulations/V631/arp631_diag_CMIP6',case,subcase,'Output/netcdf/Out_klevel.nc',
+                    ncfile=os.path.join(dir_musc,'simulations/V631/arp631_diag_CMIP6',case,subcase,'Output/netcdf/Out_klevel.nc')),
                         ]
