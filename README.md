@@ -4,10 +4,10 @@
 
 * Python 3.7 or higher
 * Python packages:
-    * numpy
-    * netCDF4
-    * xarray
-    * matplotlib
+    * [numpy](https://numpy.org/)
+    * [netCDF4](https://unidata.github.io/netcdf4-python/)
+    * [xarray](http://xarray.pydata.org/en/stable/#)
+    * [matplotlib](https://matplotlib.org/)
     * Optional: [pylatex](https://jeltef.github.io/PyLaTeX/latest/) to prepare atlas pdf files.
 
 ## Quick installation
