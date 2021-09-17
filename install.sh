@@ -6,7 +6,7 @@ set -evx
 # User specific
 
 # SCM-atlas version
-ATLAS_VERSION=1.0.alpha
+ATLAS_VERSION=1.0
 
 # Directory where SCM-atlas is installed
 DIR_ATLAS=$HOME/Tools/SCM-atlas/V${ATLAS_VERSION}
