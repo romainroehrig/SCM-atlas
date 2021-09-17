@@ -4,11 +4,11 @@
 
 * Python 3.7 or higher
 * Python packages:
-    numpy
-    netCDF4
-    xarray
-    matplotlib
-    Optional: [pylatex](https://jeltef.github.io/PyLaTeX/latest/) to prepare atlas pdf files.
+    * numpy
+    * netCDF4
+    * xarray
+    * matplotlib
+    * Optional: [pylatex](https://jeltef.github.io/PyLaTeX/latest/) to prepare atlas pdf files.
 
 ## Quick installation
 To install SCM-atlas on a CNRM computer, with access to the CNRM Lustre system:
