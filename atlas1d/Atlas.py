@@ -200,9 +200,9 @@ class Atlas:
             if all2D:
                 for diag in group.diaglist:
                     header = PageStyle("header")
-                    keys = diag.output.keys()
+                    keys = list(diag.output.keys())
                     nplot = len(keys)
-                    nlines = nplot/nplot_per_line
+                    nlines = nplot//nplot_per_line
                     for i in range(0,nlines+1):
                         with doc.create(Figure(position='h!')) as fig:
                             for j in range(0,nplot_per_line):
@@ -217,7 +217,7 @@ class Atlas:
 
             elif all1D:
                 nplot = len(group.diaglist)
-                nlines = nplot/nplot_per_line
+                nlines = nplot//nplot_per_line
                 for i in range(0,nlines+1):
                     with doc.create(Figure(position='h!')) as fig:
                         for j in range(0,nplot_per_line):

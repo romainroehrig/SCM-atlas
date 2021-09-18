@@ -27,6 +27,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-config", help="config file", type=str, required=True)
     parser.add_argument("--pdf", help="PDF files for each case/subcase is produced",    dest='pdf', action="store_true")
+    parser.add_argument("--no-run", help="No run of the atlas. Suppose it has already been run",    dest='norun', action="store_true")
     parser.add_argument("-v", help="Active verbosity",    dest='verbose', action="store_true")
 
     # Getting arguments
@@ -34,6 +35,7 @@ if __name__ == '__main__':
     config_file = args.config
 
     lpdf = args.pdf
+    lrun = not(args.norun)
     lverbose = args.verbose
 
     # check existence of config_file and then import it
@@ -69,7 +71,8 @@ if __name__ == '__main__':
     # (Re)Run a subset of atlas cases
     #atlas.run(cases=['GABLS1',])
     # Run atlas for all cases
-    atlas.run()
+    if lrun:
+        atlas.run()
 
     # Prepare pdf files assembling atlas diagnostics
     if lpdf:
