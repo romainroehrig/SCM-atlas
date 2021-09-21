@@ -18,7 +18,7 @@ To install SCM-atlas on a CNRM computer, with access to the CNRM Lustre system:
 
 2. Modify `install.sh`:
 
-   * Set `ATLAS_VERSION`, e.g., `ATLAS_VERSION=1.0`
+   * Set `ATLAS_VERSION`, e.g., `ATLAS_VERSION=1.1`
    * Set where you want to install SCM-atlas tools: default is `DIR_ATLAS=$HOME/Tools/SCM-atlas/V${ATLAS_VERSION}`
    * Set where you want to run SCM-atlas tools: default is `DIR_RUN=$HOME/Atlas1D/V${ATLAS_VERSION}`
    * Set where the reference datasets (e.g., LES) can be found: default is `DIR_REF=/cnrm/amacs/USERS/roehrig/share/SCM-atlas/References/V1.0`
