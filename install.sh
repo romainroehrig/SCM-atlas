@@ -55,10 +55,10 @@ cp -r $DIR_ATLAS/examples/* .
 ln -s $DIR_ATLAS/apptools/run_atlas1d.py
 
 tmp=$(printf '%s' "$DIR_ATLAS" | sed -e 's/[\/&]/\\&/g')
-sed -i .bak "s/__DIR_ATLAS__/"$tmp"/" setenv
+sed -i.bak "s/__DIR_ATLAS__/"$tmp"/" setenv
 
 tmp=$(printf '%s' "$DIR_REF" | sed -e 's/[\/&]/\\&/g')
-sed -i .bak "s/__DIR_REF__/"$tmp"/" setenv
+sed -i.bak "s/__DIR_REF__/"$tmp"/" setenv
 
 #####################################################
 # Some Testing
@@ -69,10 +69,10 @@ if [ $testing == "y" ]; then
     source setenv
 
     tmp=$(printf '%s' "$DIR_ATLAS" | sed -e 's/[\/&]/\\&/g')
-    sed -i .bak "s/__DIR_ATLAS__/"$tmp"/" $DIR_ATLAS/test/config_test.py
+    sed -i.bak "s/__DIR_ATLAS__/"$tmp"/" $DIR_ATLAS/test/config_test.py
 
     tmp=$(printf '%s' "$DIR_RUN" | sed -e 's/[\/&]/\\&/g')
-    sed -i .bak "s/__DIR_RUN__/"$tmp"/" $DIR_ATLAS/test/config_test.py
+    sed -i.bak "s/__DIR_RUN__/"$tmp"/" $DIR_ATLAS/test/config_test.py
 
     run_atlas1d.py -config $DIR_ATLAS/test/config_test.py
 
