@@ -63,32 +63,34 @@ def plot_timeseries(filein,varname,coef=None,units='',tmin=None,tmax=None,dtlabe
 
     try:
         timeref = time[kref]
-    except UnboundLocalError as e:
-        logger.error('Problem with variable {0}'.format(varname[k]))
-        raise e
+        tunits = timeref[0].strftime("hours since %Y-%m-%d %H:%M:0.0")
 
-    tunits = timeref[0].strftime("hours since %Y-%m-%d %H:%M:0.0")
-
-    if tmin is None:
-        tmin = timeref[0]
-    logger.debug('tmin = ' + tmin.isoformat())
+        if tmin is None:
+            tmin = timeref[0]
+        logger.debug('tmin = ' + tmin.isoformat())
     
-    if tmax is None:
-        tmax = timeref[-1]
-    logger.debug('tmax = ' + tmax.isoformat())
+        if tmax is None:
+            tmax = timeref[-1]
+        logger.debug('tmax = ' + tmax.isoformat())
 
-    tlabels = get_time_labels(tmin, tmax, tunits, dtlabel)
+        tlabels = get_time_labels(tmin, tmax, tunits, dtlabel)
 
-    tmin_rel = cftime.date2num(tmin, tunits)
-    tmax_rel = cftime.date2num(tmax, tunits)
+        tmin_rel = cftime.date2num(tmin, tunits)
+        tmax_rel = cftime.date2num(tmax, tunits)
 
-    for k in data.keys():
-        time[k] = cftime.date2num(time[k], tunits)
+        for k in data.keys():
+            time[k] = cftime.date2num(time[k], tunits)
 
-    plotutils.plot1D(time, data,\
-            xmin=tmin_rel, xmax=tmax_rel,\
-            xlabels=tlabels,\
-            **kwargs)
+        plotutils.plot1D(time, data,\
+                xmin=tmin_rel, xmax=tmax_rel,\
+                xlabels=tlabels,\
+                **kwargs)
+
+    except UnboundLocalError as e:
+        logger.info('No data for variable {0}'.format(varname[k]))
+        pass
+    except:
+        raise
 
 
 def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits='km',tt=None,tmin=None,tmax=None,init=False,t0=False,lbias=False,refdataset=None,error=None,**kwargs):

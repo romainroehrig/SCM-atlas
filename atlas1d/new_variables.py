@@ -15,7 +15,7 @@ import atlas1d.constants as cc
 
 encoding = {'dtype': 'float32', '_FillValue': np.float32(cc.missing)}
 
-def f_zcb(zf,zneb):
+def f_zcb_old(zf,zneb):
 
     nt,nlev = zneb.shape
 
@@ -50,7 +50,34 @@ def f_zcb(zf,zneb):
 
     return zcb
 
-def f_zct(zf,zneb):
+def f_zcb(zf,zneb):
+
+    nt,nlev = zneb.shape
+
+    if len(zf.shape) == 1:
+        zf = np.tile(zf.data,(nt,1))
+
+    if zf[0,0] > zf[0,1]:
+        zf_loc = np.array(zf[:,::-1],np.float32)
+        zneb_loc = np.array(zneb[:,::-1],np.float32)
+    else:
+        zf_loc = np.array(zf[:,:],np.float32)
+        zneb_loc = np.array(zneb[:,:],np.float32)
+
+    tmp = np.argmax(zneb_loc >= 0.001, axis=1)
+    zcb = np.array([zf_loc[it,tmp[it]] for it in range(0,nt)])
+    tmp = np.max(zneb_loc, axis=1)
+    zcb[tmp < 0.001] = missing
+
+    zcb = xr.DataArray(zcb, coords=[zneb.time,])
+    zcb.encoding = encoding
+    zcb.attrs["missing_value"] = np.float32(missing)
+    zcb.attrs["long_name"] = 'Cloud base height'
+    zcb.attrs["units"] = 'm'
+
+    return zcb
+
+def f_zct_old(zf,zneb):
 
     nt,nlev = zneb.shape
 
@@ -80,6 +107,33 @@ def f_zct(zf,zneb):
     zct = xr.DataArray(zct, coords=[zneb.time,])
     zct.encoding = encoding
     zct.attrs["missing_value"] = np.float32(cc.missing)
+    zct.attrs["long_name"] = 'Cloud top height'
+    zct.attrs["units"] = 'm'
+
+    return zct
+
+def f_zct(zf,zneb):
+
+    nt,nlev = zneb.shape
+
+    if len(zf.shape) == 1:
+        zf = np.tile(zf.data,(nt,1))
+
+    if zf[0,0] < zf[0,1]:
+        zf_loc = np.array(zf[:,::-1],np.float32)
+        zneb_loc = np.array(zneb[:,::-1],np.float32)
+    else:
+        zf_loc = np.array(zf[:,:],np.float32)
+        zneb_loc = np.array(zneb[:,:],np.float32)
+
+    tmp = np.argmax(zneb_loc >= 0.001, axis=1)
+    zct = np.array([zf_loc[it,tmp[it]] for it in range(0,nt)])
+    tmp = np.max(zneb_loc, axis=1)
+    zct[tmp < 0.001] = missing
+
+    zct = xr.DataArray(zct, coords=[zneb.time,])
+    zct.encoding = encoding
+    zct.attrs["missing_value"] = np.float32(missing)
     zct.attrs["long_name"] = 'Cloud top height'
     zct.attrs["units"] = 'm'
 
