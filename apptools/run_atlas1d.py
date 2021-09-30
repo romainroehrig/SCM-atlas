@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding:UTF-8 -*-
 # Copyright (c) Météo France (2014-)
 # This software is governed by the CeCILL-C license under French law.
@@ -82,5 +82,6 @@ if __name__ == '__main__':
     # Prepare html interface for atlas of all cases
     logging.info('Preparing html interface')
     atlas.tohtml()
+    loggint.info('Atlas ready at {0}/index.html'.format(atlas.html_dir))
 
     os.remove("./{0}.py".format(configloc))

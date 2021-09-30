@@ -14,7 +14,7 @@ import numpy as np
 import numpy.ma as ma
 import xarray as xr
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 import cftime
 
 import atlas1d
@@ -359,7 +359,7 @@ def get_time_labels(tmin, tmax, tunits, dtlabel):
 
     if dtlabel == '1h':
 
-        tmin0 = cftime.datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
+        tmin0 = datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
         t0 = tmin0 + timedelta(hours=0)
         while t0 <= tmax:
             if t0 >= tmin: 
@@ -369,7 +369,7 @@ def get_time_labels(tmin, tmax, tunits, dtlabel):
 
     elif dtlabel == '2h':
 
-        tmin0 = cftime.datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
+        tmin0 = datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
         t0 = tmin0 + timedelta(hours=0)
         while t0 <= tmax:
             if t0 >= tmin: 
@@ -379,7 +379,7 @@ def get_time_labels(tmin, tmax, tunits, dtlabel):
 
     elif dtlabel == '6h':
 
-        tmin0 = cftime.datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
+        tmin0 = datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
         t0 = tmin0 + timedelta(hours=0)
         while t0 <= tmax:
             if t0 >= tmin: 
@@ -389,7 +389,7 @@ def get_time_labels(tmin, tmax, tunits, dtlabel):
         
     elif dtlabel == '10d':
 
-        tmin0 = cftime.datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
+        tmin0 = datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
         t0 = tmin0 + timedelta(hours=0)
         while t0 <= tmax:
             if t0 >= tmin:
