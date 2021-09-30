@@ -165,8 +165,10 @@ class MultiAtlas:
             f.write('<tr style="height: 18px;">')
             f.write('<td style="width: 150; height: 18px;" align="left"><strong>{0}/{1}</strong></td>\n'.format(atlas.case,atlas.subcase))
             for group in atlas.grouplist:
-                f.write('<td style="width: {0}; height: 18px;" align="center"><a href="file://{1}/{2}.html">{3}</a></td>\n'.format(
-                    width_per_group,atlas.html_dir,group.name,group.head,))
+                #f.write('<td style="width: {0}; height: 18px;" align="center"><a href="file://{1}/{2}.html">{3}</a></td>\n'.format(
+                #    width_per_group,atlas.html_dir,group.name,group.head,))                
+                f.write('<td style="width: {0}; height: 18px;" align="center"><a href="../{1}/{2}/html/{3}.html">{4}</a></td>\n'.format(
+                    width_per_group,atlas.case,atlas.subcase,group.name,group.head))
 
             f.write('</tr>\n')
             f.write('</tbody></table>\n')

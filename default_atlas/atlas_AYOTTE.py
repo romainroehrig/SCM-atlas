@@ -114,13 +114,13 @@ diagnostics = OrderedDict([
         'levunits' : 'km'                   ,
         'rtitle'   : '4-5 hour'             ,        
         'variables': OrderedDict([
-            ('w_up',     {'xmin':    0.  , 'xmax':   4.               }),
-            ('alpha_up', {'xmin':    0.  , 'xmax':  25.               }),
-            ('Mf',       {'xmin':    0.  , 'xmax':   0.3, 'lev':'zh'  }),
-            ('dTv_up',   {'xmin':   -2.  , 'xmax':   1.               }),
-            ('B_up',     {'xmin':   -0.02, 'xmax':   0.02             }),
-            ('eps_u',    {'xmin':   -0.5 , 'xmax':   5.               }),
-            ('det_u',    {'xmin':   -0.5 , 'xmax':   5.               }),            
+            ('w_up',     {'xmin':    0.  , 'xmax':   4.  }),
+            ('alpha_up', {'xmin':    0.  , 'xmax':  25.  }),
+            ('Mf',       {'xmin':    0.  , 'xmax':   0.3 }),
+            ('dTv_up',   {'xmin':   -2.  , 'xmax':   1.  }),
+            ('B_up',     {'xmin':   -0.02, 'xmax':   0.02}),
+            ('eps_u',    {'xmin':   -0.5 , 'xmax':   5.  }),
+            ('det_u',    {'xmin':   -0.5 , 'xmax':   5.  }),            
         ]),
     }), # end hour4-5_conv
     #######################
@@ -138,7 +138,7 @@ diagnostics = OrderedDict([
             ('qv',    {'xmin':  -1., 'xmax':    5.}),
             ('ql',    {'xmin':  -1., 'xmax':   20.}),
             ('qi',    {'xmin':  -1., 'xmax':   20.}),
-            ('tke',   {'xmin':  -1., 'xmax':    1., 'lev':'zh'}),
+            ('tke',   {'xmin':  -1., 'xmax':    1.}),
         ]),
     }), # end init 
     #######################
@@ -156,7 +156,7 @@ diagnostics = OrderedDict([
             ('qv',    {'xmin':  -1., 'xmax':    5.}),
             ('ql',    {'xmin':  -1., 'xmax':   20.}),
             ('qi',    {'xmin':  -1., 'xmax':   20.}),
-            ('tke',   {'xmin':  -1., 'xmax':    1., 'lev':'zh'}),
+            ('tke',   {'xmin':  -1., 'xmax':    1.}),
         ]),
     }), # end initLL 
     #######################    

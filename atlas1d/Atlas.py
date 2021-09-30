@@ -266,8 +266,10 @@ class Atlas:
         f.write('<tr style="height: 18px;">')
         f.write('<td style="width: 5%; height: 18px;"><strong>{0}/{1}</strong></td>\n'.format(self.case,self.subcase))
         for group in self.grouplist:
-            f.write('<td style="width: {0}%; height: 18px;"><a href="file://{1}/{2}.html">{3}</a></td>\n'.format(
-                int(len(group.head)*width_per_letter),self.html_dir,group.name,group.head,))
+            #f.write('<td style="width: {0}%; height: 18px;"><a href="file://{1}/{2}.html">{3}</a></td>\n'.format(
+            #    int(len(group.head)*width_per_letter),self.html_dir,group.name,group.head,))            
+            f.write('<td style="width: {0}%; height: 18px;"><a href="{1}.html">{2}</a></td>\n'.format(
+                int(len(group.head)*width_per_letter),group.name,group.head,))
             group.tohtml(root_dir=self.html_dir,index=index)
 
         f.write('</tr>\n')

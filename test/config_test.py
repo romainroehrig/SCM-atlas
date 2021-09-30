@@ -16,10 +16,11 @@ from atlas1d.Simulation import Simulation
 dir_atlas = '__DIR_RUN__/MyAtlas/'
 name_atlas = 'TEST'
 
-cases = ['ARMCU', 'RICO', 'SANDU']
+cases = ['ARMCU', 'RICO', 'FIRE', 'SANDU']
 subcases = OrderedDict([
         ('RICO' , ['SHORT',]),
         ('ARMCU', ['REF',]),
+        ('FIRE',  ['REF',]),
         ('SANDU', ['REF']),
         ])
 

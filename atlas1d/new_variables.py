@@ -221,6 +221,45 @@ def f_avg(zf, var2avg, zmin, zmax):
 
     return zout
 
+def f_thetal(ds):
+    """
+    Compute thetal.
+    """
+
+    try:
+        ql = get_ql(ds)
+        #tmp = ds.theta - (ds.theta/ds.temp)*(cc.Lv/cc.Cpd)*ql
+        tmp = ds.theta - (cc.Lv/cc.Cpd)*ql
+    except:
+        raise
+
+    thetal = xr.DataArray(tmp, coords=[ds.theta.time,ds.theta.levf])
+    thetal.encoding = encoding
+    thetal.attrs["missing_value"] = np.float32(cc.missing)
+    thetal.attrs["long_name"] = 'Liquid-water potential temperature'
+    thetal.attrs["units"] = 'K'
+
+    return thetal
+
+def f_qt(ds):
+    """
+    Compute qt
+    """
+
+    try:
+        ql = get_ql(ds)
+        tmp = ds.qv + ql
+    except:
+        raise
+
+    qt = xr.DataArray(tmp, coords=[ds.qv.time,ds.qv.levf])
+    qt.encoding = encoding
+    qt.attrs["missing_value"] = np.float32(cc.missing)
+    qt.attrs["long_name"] = 'Total water content'
+    qt.attrs["units"] = 'kg kg-1'
+
+    return qt
+
 def add_ql_to_dataset(ds):
     """
     Compute ql=ql+qlc in case of PCMT. If no ql or no qlc, raise exception.
@@ -238,6 +277,23 @@ def add_ql_to_dataset(ds):
     except:
         raise    
 
+def add_qi_to_dataset(ds):
+    """
+    Compute qi=qi+qic in case of PCMT. If no qi or no qic, raise exception.
+    """
+
+    try:
+        ds['qi'] = ds.qi + ds.qic
+        ds['qi'].attrs['long_name'] = 'Ice water content'
+        ds['qi'].attrs['units'] = 'kg kg-1'
+    except AttributeError as e:
+        logger.debug('Error in computing qi=qi+qic:' + str(e))
+        logger.debug('Most probably, either qi or qic does not exist in the dataset (specific to PCMT)')
+        logger.debug('Thus just raise exception (AttributeError)')
+        raise
+    except:
+        raise 
+
 def add_qr_to_dataset(ds):
     """
     Compute qr=qr+qrc in case of PCMT. If no qr or no qrc, raise exception.
@@ -250,6 +306,23 @@ def add_qr_to_dataset(ds):
     except AttributeError as e:
         logger.debug('Error in computing qr=qr+qrc:' + str(e))
         logger.debug('Most probably, either qr or qrc does not exist in the dataset (specific to PCMT)')
+        logger.debug('Thus just raise exception (AttributeError)')
+        raise
+    except:
+        raise  
+
+def add_qsn_to_dataset(ds):
+    """
+    Compute qsn=qsn+qsnc in case of PCMT. If no qr or no qrc, raise exception.
+    """
+
+    try:
+        ds['qsn'] = ds.qsn + ds.qsnc
+        ds['qsn'].attrs['long_name'] = 'Snow water content'
+        ds['qsn'].attrs['units'] = 'kg kg-1'
+    except AttributeError as e:
+        logger.debug('Error in computing qsn=qsn+qsnc:' + str(e))
+        logger.debug('Most probably, either qsn or qsnc does not exist in the dataset (specific to PCMT)')
         logger.debug('Thus just raise exception (AttributeError)')
         raise
     except:
@@ -271,6 +344,34 @@ def get_ql(ds):
         try:
             tmp = ds.ql
             logger.debug('Dataset has ql. We can continue!')
+        except AttributeError as e:
+            logger.debug('Dataset has no ql: ' + str(e))
+            logger.debug('Just raise exception (AttributeError)')
+            raise
+        except:
+            raise
+        pass            
+    except:
+        raise
+
+    return tmp
+
+def get_qi(ds):
+    """
+    Get qi in dataset ds
+    """
+
+    try:
+        tmp = ds.qi+ds.qic
+        tmp.attrs['long_name'] = 'Ice water content'
+        tmp.attrs['units'] = 'kg kg-1'
+    except AttributeError as e:
+        logger.debug('Error in computing qi=qi+qic:' + str(e))
+        logger.debug('Most probably, either qi or qic does not exist in the dataset (specific to PCMT)')
+        logger.debug('Try to get qi')
+        try:
+            tmp = ds.qi
+            logger.debug('Dataset has qi. We can continue!')
         except AttributeError as e:
             logger.debug('Dataset has no ql: ' + str(e))
             logger.debug('Just raise exception (AttributeError)')
@@ -311,6 +412,34 @@ def get_qr(ds):
 
     return tmp
 
+def get_qsn(ds):
+    """
+    Get qsn in dataset ds
+    """
+
+    try:
+        tmp = ds.qsn+ds.qsnc
+        tmp.attrs['long_name'] = 'Snow water content'
+        tmp.attrs['units'] = 'kg kg-1'
+    except AttributeError as e:
+        logger.debug('Error in computing qsn=qsn+qsnc:' + str(e))
+        logger.debug('Most probably, either qsn or qsnc does not exist in the dataset (specific to PCMT)')
+        logger.debug('Try to get qsn')
+        try:
+            tmp = ds.qsn
+            logger.debug('Dataset has qsn. We can continue!')
+        except AttributeError as e:
+            logger.debug('Dataset has no qsn: ' + str(e))
+            logger.debug('Just raise exception (AttributeError)')
+            raise
+        except:
+            raise
+        pass            
+    except:
+        raise
+
+    return tmp
+
 
 def compute(filein, fileout, var):
 
@@ -323,8 +452,12 @@ def compute(filein, fileout, var):
             ds['zct'] = f_zct(ds.zf, ds.rneb)
         elif var == 'ql':
             add_ql_to_dataset(ds)
+        elif var == 'qi':
+            add_qi_to_dataset(ds)
         elif var == 'qr':
             add_qr_to_dataset(ds)
+        elif var == 'qsn':
+            add_qsn_to_dataset(ds)
         elif var == 'lwp':
             tmp = get_ql(ds)
             ds['lwp'] = f_int(ds.zh, tmp)
@@ -335,6 +468,11 @@ def compute(filein, fileout, var):
             ds['rwp'] = f_int(ds.zh, tmp)
             ds['rwp'].attrs['long_name'] = 'Rain water path'
             ds['rwp'].attrs['units'] = 'kg m-2'
+        elif var == 'iwp':
+            tmp = get_qi(ds)
+            ds['iwp'] = f_int(ds.zh, tmp)
+            ds['iwp'].attrs['long_name'] = 'Ice water path'
+            ds['iwp'].attrs['units'] = 'kg m-2'
         elif var == 'theta_0_500':
             ds[var] = f_avg(ds.zf,ds.theta,0,500)
             ds[var].attrs['long_name'] = 'Potential temperature averaged over 0-500m'
@@ -373,6 +511,10 @@ def compute(filein, fileout, var):
             ds[var] = zqr-zqrcs
             ds[var].attrs['long_name'] = 'Atmospheric CRE'
             ds[var].attrs['units'] = 'W m-2'
+        elif var == 'thetal':
+            ds[var] = f_thetal(ds)
+        elif var == 'qt':
+            ds[var] = f_qt(ds)
         else:
             logger.error('variable to be computed is unknown:', var)
             raise NotImplementedError

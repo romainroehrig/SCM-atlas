@@ -51,7 +51,7 @@ diagnostics = OrderedDict([
         'dtlabel'  : '1h'                ,
         'xname'    : '21 June 1997 (UTC)',
         'variables': OrderedDict([
-            ('u', {'levels': list(range(0,12,1))                 , 'extend':'both'}),
+            ('u', {'levels': list(range(0,12,1))           , 'extend':'both'}),
             ('v', {'levels': [i*0.5 for i in range(-6,7,1)], 'extend':'both'}),
         ]),
     }), # end 2D_dyn
@@ -68,8 +68,10 @@ diagnostics = OrderedDict([
         'dtlabel'  : '1h'                ,
         'xname'    : '21 June 1997 (UTC)',
         'variables': OrderedDict([
-            ('theta', {'levels': list(range(300,321,1))   , 'extend':'both'                    }),
-            ('qv'   , {'levels': [0] + list(range(4,18,1)), 'extend':'max', 'cmap': cm.RdBu }),
+            #('theta', {'levels': list(range(300,321,1))   , 'extend':'both'                 }),
+            ('thetal', {'levels': list(range(300,321,1))  , 'extend':'both'                 }),
+            #('qv'   , {'levels': [0] + list(range(4,18,1)), 'extend':'max', 'cmap': cm.RdBu }),
+            ('qt'   , {'levels': [0] + list(range(4,18,1)), 'extend':'max', 'cmap': cm.RdBu }),
         ]),
     }), # end 2D_thermo
     #######################
@@ -101,8 +103,8 @@ diagnostics = OrderedDict([
         'dtlabel'  : '1h'                ,
         'xname'    : '21 June 1997 (UTC)',
         'variables': OrderedDict([
-            ('rneb', {'levels': [0,1] + list(range(4,21,2))         , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
-            ('ql'  , {'levels': list(range(0,41,4))                 , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('rneb', {'levels': [0,1] + list(range(4,21,2))   , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('ql'  , {'levels': list(range(0,41,4))           , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
             ('qr'  , {'levels': [i*0.4 for i in range(0,11,1)], 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
         ]),
     }), # end 2D_cloud
@@ -136,8 +138,10 @@ diagnostics = OrderedDict([
         'variables': OrderedDict([
             ('u',        {'xmin':    0.  , 'xmax':  12. , 'init':True }),
             ('v',        {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
-            ('theta',    {'xmin':  300.  , 'xmax': 325. , 'init':True }),
-            ('qv',       {'xmin':    0.  , 'xmax':  18. , 'init':True }),
+            #('theta',    {'xmin':  300.  , 'xmax': 325. , 'init':True }),
+            ('thetal',   {'xmin':  300.  , 'xmax': 325. , 'init':True }),
+            #('qv',       {'xmin':    0.  , 'xmax':  18. , 'init':True }),
+            ('qt',       {'xmin':    0.  , 'xmax':  18. , 'init':True }),
             ('rneb',     {'xmin':    0.  , 'xmax':  40.               }),
             ('ql',       {'xmin':    0.  , 'xmax':  60.               }),
             ('qr',       {'xmin':    0.  , 'xmax':  10.               }),
@@ -157,8 +161,10 @@ diagnostics = OrderedDict([
         'variables': OrderedDict([
             ('u',        {'xmin':    0.  , 'xmax':  12. , 'init':True }),
             ('v',        {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
-            ('theta',    {'xmin':  300.  , 'xmax': 325. , 'init':True }),
-            ('qv',       {'xmin':    0.  , 'xmax':  18. , 'init':True }),
+            #('theta',    {'xmin':  300.  , 'xmax': 325. , 'init':True }),
+            ('thetal',   {'xmin':  300.  , 'xmax': 325. , 'init':True }),
+            #('qv',       {'xmin':    0.  , 'xmax':  18. , 'init':True }),
+            ('qt',       {'xmin':    0.  , 'xmax':  18. , 'init':True }),
             ('rneb',     {'xmin':    0.  , 'xmax':  40.               }),
             ('ql',       {'xmin':    0.  , 'xmax':  60.               }),
             ('qr',       {'xmin':    0.  , 'xmax':  10.               }),
@@ -188,44 +194,44 @@ diagnostics = OrderedDict([
     }), # end 2D_conv
     #######################
     ("hour7-8_conv",{
-        'head'     : 'Convection 7-8h'       ,
-        'type'     : 'plotAvgP'              ,
+        'head'     : 'Convection 7-8h'        ,
+        'type'     : 'plotAvgP'               ,
         'tmin'     : tmin + timedelta(hours=7),
         'tmax'     : tmin + timedelta(hours=8),
-        'ymin'     : 0.                      ,
-        'ymax'     : 4.                      ,
-        'yname'    : 'altitude (km)'         ,
-        'levunits' : 'km'                    ,
-        'rtitle'   : '7-8 hour'              ,        
-        'variables': OrderedDict([
-            ('w_up',     {'xmin':    0.  , 'xmax':   4.               }),
-            ('alpha_up', {'xmin':    0.  , 'xmax':  25.               }),
-            ('Mf',       {'xmin':    0.  , 'xmax':   0.3, 'lev':'zh'  }),
-            ('dTv_up',   {'xmin':   -1.  , 'xmax':   1.               }),
-            ('B_up',     {'xmin':   -0.02, 'xmax':   0.02             }),
-            ('eps_u',    {'xmin':   -0.5 , 'xmax':   5.               }),
-            ('det_u',    {'xmin':   -0.5 , 'xmax':   5.               }),            
-        ]),
-    }), # end hour7-8_conv
-    #######################
-    ("hour9-10_conv",{
-        'head'     : 'Convection 9-10h'       ,
-        'type'     : 'plotAvgP'               ,
-        'tmin'     : tmin + timedelta(hours=9) ,
-        'tmax'     : tmin + timedelta(hours=10),
         'ymin'     : 0.                       ,
         'ymax'     : 4.                       ,
         'yname'    : 'altitude (km)'          ,
         'levunits' : 'km'                     ,
-        'rtitle'   : '9-10 hour'              ,        
+        'rtitle'   : '7-8 hour'               ,        
         'variables': OrderedDict([
-            ('w_up',     {'xmin':    0.  , 'xmax':   4.               }),
-            ('alpha_up', {'xmin':    0.  , 'xmax':  25.               }),
-            ('Mf',       {'xmin':    0.  , 'xmax':   0.3, 'lev':'zh'  }),
-            ('dTv_up',   {'xmin':   -1.  , 'xmax':   1.               }),
-            ('B_up',     {'xmin':   -0.02, 'xmax':   0.02             }),
-            ('eps_u',    {'xmin':   -0.5 , 'xmax':   5.               }),
-            ('det_u',    {'xmin':   -0.5 , 'xmax':   5.               }),            
+            ('w_up',     {'xmin':    0.  , 'xmax':   4.  }),
+            ('alpha_up', {'xmin':    0.  , 'xmax':  25.  }),
+            ('Mf',       {'xmin':    0.  , 'xmax':   0.3 }),
+            ('dTv_up',   {'xmin':   -1.  , 'xmax':   1.  }),
+            ('B_up',     {'xmin':   -0.02, 'xmax':   0.02}),
+            ('eps_u',    {'xmin':   -0.5 , 'xmax':   5.  }),
+            ('det_u',    {'xmin':   -0.5 , 'xmax':   5.  }),            
+        ]),
+    }), # end hour7-8_conv
+    #######################
+    ("hour9-10_conv",{
+        'head'     : 'Convection 9-10h'        ,
+        'type'     : 'plotAvgP'                ,
+        'tmin'     : tmin + timedelta(hours=9) ,
+        'tmax'     : tmin + timedelta(hours=10),
+        'ymin'     : 0.                        ,
+        'ymax'     : 4.                        ,
+        'yname'    : 'altitude (km)'           ,
+        'levunits' : 'km'                      ,
+        'rtitle'   : '9-10 hour'               ,        
+        'variables': OrderedDict([
+            ('w_up',     {'xmin':    0.  , 'xmax':   4.  }),
+            ('alpha_up', {'xmin':    0.  , 'xmax':  25.  }),
+            ('Mf',       {'xmin':    0.  , 'xmax':   0.3 }),
+            ('dTv_up',   {'xmin':   -1.  , 'xmax':   1.  }),
+            ('B_up',     {'xmin':   -0.02, 'xmax':   0.02}),
+            ('eps_u',    {'xmin':   -0.5 , 'xmax':   5.  }),
+            ('det_u',    {'xmin':   -0.5 , 'xmax':   5.  }),            
         ]),
     }), # end hour9-10_conv  
     #######################
@@ -240,10 +246,12 @@ diagnostics = OrderedDict([
             ('u',     {'xmin':   8., 'xmax':   12.}),
             ('v',     {'xmin':  -1., 'xmax':    1.}),
             ('theta', {'xmin': 295., 'xmax':  450.}),
+            ('thetal',{'xmin': 295., 'xmax':  450.}),
             ('qv',    {'xmin':  -1., 'xmax':   18.}),
+            ('qt',    {'xmin':  -1., 'xmax':   18.}),
             ('ql',    {'xmin':  -1., 'xmax':   10.}),
             ('qi',    {'xmin':  -1., 'xmax':   10.}),
-            ('tke',   {'xmin':  -1., 'xmax':    1., 'lev':'zh'}),
+            ('tke',   {'xmin':  -1., 'xmax':    1.}),
         ]),
     }), # end init 
     #######################
@@ -258,10 +266,12 @@ diagnostics = OrderedDict([
             ('u',     {'xmin':   8., 'xmax':   12.}),
             ('v',     {'xmin':  -1., 'xmax':    1.}),
             ('theta', {'xmin': 295., 'xmax':  325.}),
+            ('thetal',{'xmin': 295., 'xmax':  325.}),
             ('qv',    {'xmin':  -1., 'xmax':   18.}),
+            ('qt',    {'xmin':  -1., 'xmax':   18.}),
             ('ql',    {'xmin':  -1., 'xmax':   10.}),
             ('qi',    {'xmin':  -1., 'xmax':   10.}),
-            ('tke',   {'xmin':  -1., 'xmax':    1., 'lev':'zh'}),
+            ('tke',   {'xmin':  -1., 'xmax':    1.}),
         ]),
     }), # end initLL 
     #######################    

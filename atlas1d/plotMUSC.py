@@ -116,7 +116,7 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
                 if tmin is not None and tmax is not None:
 
                     data[k] = np.average(ds[varname[k]].sel(time=slice(tmin,tmax)).data,axis=0)*coef[k]
-                    level[k] = get_level(ds, lev[k])
+                    level[k] = get_level(ds, lev[k], nlev=data[k].shape[0])
 
                     if len(level[k].shape) == 2:
                         level[k] = np.average(level[k].sel(time=slice(tmin,tmax)).data,axis=0)
@@ -124,7 +124,7 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
                 elif t0:
 
                     data[k] = ds[varname[k]].data[0,:]*coef[k]
-                    level[k] = get_level(ds, lev[k])
+                    level[k] = get_level(ds, lev[k], nlev=data[k].shape[0])
 
                     if len(level[k].shape) == 2:
                         level[k] = level[k].data[0,:]
@@ -151,7 +151,7 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
                     logger.debug('tt = ' + tt.isoformat())
 
                     data[k] = ds[varname[k]].sel(time=tt, method='nearest').data*coef[k]
-                    level[k] = get_level(ds, lev[k])
+                    level[k] = get_level(ds, lev[k], nlev=data[k].shape[0])
 
                     if len(level[k].shape) == 2:
                         level[k] = level[k].sel(time=tt, method='nearest').data
@@ -192,7 +192,7 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
     if init: # Adding initial profiles on plot
         with xr.open_dataset(filein[kref]) as ds:
             data['init'] = ds[varname[kref]].data[0,:]*coef[k]
-            tmp = ds[lev[kref]].data
+            tmp = get_level(ds, lev[kref], nlev=data['init'].shape[0])
             if len(tmp.shape) == 2:
                 level['init'] = tmp[0,:]
             elif len(tmp.shape) == 1:
@@ -414,7 +414,7 @@ def get_time_labels(tmin, tmax, tunits, dtlabel):
 
     return tt, tlabels
 
-def get_level(ds, lev):
+def get_level(ds, lev, nlev=None):
 
     if lev == 'zf':
         level = ds[lev]
@@ -440,13 +440,29 @@ def get_level(ds, lev):
         logger.error('Level unexpected: {0}'.forma(lev))
         raise NotImplementedError
 
+    if nlev is not None:
+        if len(level.shape) == 2:
+            _, nlev_loc = level.shape
+        else:
+            nlev_loc, = level.shape
+
+        if nlev != nlev_loc:
+            if lev == 'zf':
+                level = ds['zh']
+            elif lev == 'zh':
+                level = ds['zf']
+            elif lev == 'pf':
+                level = ds['ph']
+            elif lev == 'ph':
+                level = ds['pf']
+
     return level
 
 def update_level(level, levname, levunits):
 
     if levname in ['zf','zh']:
         if levunits == 'm':
-            pass
+            levelloc = level
         elif levunits == 'km':
             levelloc = level/1000.
         else:
@@ -454,7 +470,7 @@ def update_level(level, levname, levunits):
             raise NotImplementedError
     elif levname in ['pf','ph']:
         if levunits == 'Pa':
-            pass
+            levelloc = level
         elif levunits == 'hPa':
             levelloc = level/100.
         else:

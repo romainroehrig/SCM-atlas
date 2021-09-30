@@ -119,7 +119,8 @@ class DiagGroup:
         f = open('{0}/{1}.html'.format(root_dir,self.name),'w')
         f.write('<head><title>{0}/{1}/{2}</title></head>\n'.format(dat.case,dat.subcase,self.name))
         f.write('<h1 style="text-align: center;">{0}/{1}: {2}</h1>\n'.format(dat.case,dat.subcase,self.head))
-        f.write('<a href="file://{0}">Back to main index</a>\n'.format(index))
+        #f.write('<a href="file://{0}">Back to main index</a>\n'.format(index))
+        f.write('<a href="../../../html/index.html">Back to main index</a>\n')
         if all2D:
             for diag in self.diaglist:
                 f.write('<ul><li><h3><span style="text-decoration: underline;"><strong>{0}</strong></span></h3></li></ul>\n'.format(diag.name))
@@ -134,7 +135,10 @@ class DiagGroup:
                     i1 = i*ndiag_per_line
                     i2 = min((i+1)*ndiag_per_line,ndiag)
                     for j in range(i1,i2):
-                        f.write('<td> <img src="file://{0}" style="width: {1}px;"/> </td>\n'.format(diag.output[diags[j]],width))
+                        #f.write('<td> <img src="file://{0}" style="width: {1}px;"/> </td>\n'.format(diag.output[diags[j]],width))
+                        path = diag.output[diags[j]].split('/')
+                        path = os.path.join('..',path[-2],path[-1])
+                        f.write('<td> <img src="{0}" style="width: {1}px;"/> </td>\n'.format(path,width))
                     f.write('</tr></table>\n')
         elif all1D:
             nplot_per_line = 4
@@ -144,7 +148,10 @@ class DiagGroup:
                 f.write('<table><tr>\n')
                 for j in range(0,nplot_per_line):
                     if i*nplot_per_line+j < nplot:
-                        f.write('<td> <img src="file://{0}" style="width: {1}px;"/> </td>\n'.format(self.diaglist[i*nplot_per_line+j].output,width))
+                        #f.write('<td> <img src="file://{0}" style="width: {1}px;"/> </td>\n'.format(self.diaglist[i*nplot_per_line+j].output,width))
+                        path = self.diaglist[i*nplot_per_line+j].output.split('/')
+                        path = os.path.join('..',path[-2],path[-1])
+                        f.write('<td> <img src="{0}" style="width: {1}px;"/> </td>\n'.format(self.diaglist[i*nplot_per_line+j].output,width))
                 f.write('</tr></table>\n')
         else:
             logger.error('mixed case not coded yet')
