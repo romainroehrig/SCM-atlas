@@ -151,7 +151,7 @@ class DiagGroup:
                         #f.write('<td> <img src="file://{0}" style="width: {1}px;"/> </td>\n'.format(self.diaglist[i*nplot_per_line+j].output,width))
                         path = self.diaglist[i*nplot_per_line+j].output.split('/')
                         path = os.path.join('..',path[-2],path[-1])
-                        f.write('<td> <img src="{0}" style="width: {1}px;"/> </td>\n'.format(self.diaglist[i*nplot_per_line+j].output,width))
+                        f.write('<td> <img src="{0}" style="width: {1}px;"/> </td>\n'.format(path,width))
                 f.write('</tr></table>\n')
         else:
             logger.error('mixed case not coded yet')
