@@ -82,6 +82,6 @@ if __name__ == '__main__':
     # Prepare html interface for atlas of all cases
     logging.info('Preparing html interface')
     atlas.tohtml()
-    loggint.info('Atlas ready at {0}/index.html'.format(atlas.html_dir))
+    logging.info('Atlas ready at {0}/index.html'.format(atlas.html_dir))
 
     os.remove("./{0}.py".format(configloc))
