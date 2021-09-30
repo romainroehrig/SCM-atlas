@@ -67,11 +67,11 @@ def f_zcb(zf,zneb):
     tmp = np.argmax(zneb_loc >= 0.001, axis=1)
     zcb = np.array([zf_loc[it,tmp[it]] for it in range(0,nt)])
     tmp = np.max(zneb_loc, axis=1)
-    zcb[tmp < 0.001] = missing
+    zcb[tmp < 0.001] = cc.missing
 
     zcb = xr.DataArray(zcb, coords=[zneb.time,])
     zcb.encoding = encoding
-    zcb.attrs["missing_value"] = np.float32(missing)
+    zcb.attrs["missing_value"] = np.float32(cc.missing)
     zcb.attrs["long_name"] = 'Cloud base height'
     zcb.attrs["units"] = 'm'
 
@@ -129,11 +129,11 @@ def f_zct(zf,zneb):
     tmp = np.argmax(zneb_loc >= 0.001, axis=1)
     zct = np.array([zf_loc[it,tmp[it]] for it in range(0,nt)])
     tmp = np.max(zneb_loc, axis=1)
-    zct[tmp < 0.001] = missing
+    zct[tmp < 0.001] = cc.missing
 
     zct = xr.DataArray(zct, coords=[zneb.time,])
     zct.encoding = encoding
-    zct.attrs["missing_value"] = np.float32(missing)
+    zct.attrs["missing_value"] = np.float32(cc.missing)
     zct.attrs["long_name"] = 'Cloud top height'
     zct.attrs["units"] = 'm'
 
