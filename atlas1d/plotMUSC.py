@@ -32,29 +32,29 @@ def plot_timeseries(filein,varname,coef=None,units='',tmin=None,tmax=None,dtlabe
         coef = {k: 1. for k in filein.keys()}
 
     for k in filein.keys():
-        with xr.open_dataset(filein[k], use_cftime=True) as ds:
-            try:
+        try:
+            with xr.open_dataset(filein[k], use_cftime=True) as ds:
                 data[k] = np.squeeze(ds[varname[k]].data)*coef[k]
                 data[k] = np.ma.masked_where(data[k] == cc.missing, data[k])
                 time[k] = ds[varname[k]].time.data
                 kref = k
-            except KeyError as e:
-                data[k] = None  
-                time[k] = None
-                logger.debug('Variable {2} probably unknown in dataset {0} (file={1})'.format(k,filein[k],varname[k]))
-                logger.debug('Raised error: KeyError')
-                if error is not None:
-                    if isinstance(error,dict):
-                        if k in error:
-                            error[k].append(varname[k])
-                        else:
-                            error[k] = [varname[k],]
+        except (KeyError,FileNotFoundError) as e:
+            data[k] = None  
+            time[k] = None
+            logger.debug('Variable {2} probably unknown in dataset {0} (file={1})'.format(k,filein[k],varname[k]))
+            logger.debug('Raised error: '+ str(e))
+            if error is not None:
+                if isinstance(error,dict):
+                    if k in error:
+                        error[k].append(varname[k])
                     else:
-                        logger.error('type of error unexpected:', type(error))
-                        logger.error('error should be a dictionnary')
-                        raise ValueError
-            except:
-                raise
+                        error[k] = [varname[k],]
+                else:
+                    logger.error('type of error unexpected:', type(error))
+                    logger.error('error should be a dictionnary')
+                    raise ValueError
+        except:
+            raise
 
     for k in filein.keys():
         if data[k] is None:
@@ -109,9 +109,8 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
       lev = {k: lev for k in filein.keys()}
 
     for i,k in enumerate(filein.keys()):
-        with xr.open_dataset(filein[k], use_cftime=True) as ds:
-
-            try:
+        try:
+            with xr.open_dataset(filein[k], use_cftime=True) as ds:
                 time = ds[varname[k]].time.data
                 if tmin is not None and tmax is not None:
 
@@ -162,23 +161,23 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
                     
                 kref = k
 
-            except (KeyError, AttributeError) as e:
-                data[k] = None
-                level[k] = None   
-                logger.debug('Variable {2} probably unknown in dataset {0} (file={1})'.format(k,filein[k],varname[k]))
-                logger.debug('Raised error: {0}'.format(e))
-                if error is not None:
-                    if isinstance(error,dict):
-                        if k in error:
-                            error[k].append(varname[k])
-                        else:
-                            error[k] = [varname[k],]
+        except (KeyError, AttributeError, FileNotFoundError) as e:
+            data[k] = None
+            level[k] = None   
+            logger.debug('Variable {2} probably unknown in dataset {0} (file={1})'.format(k,filein[k],varname[k]))
+            logger.debug('Raised error: {0}'.format(e))
+            if error is not None:
+                if isinstance(error,dict):
+                    if k in error:
+                        error[k].append(varname[k])
                     else:
-                        logger.error('type of error unexpected:', type(error))
-                        logger.error('error should be a dictionnary')
-                        raise ValueError
-            except:
-                raise
+                        error[k] = [varname[k],]
+                else:
+                    logger.error('type of error unexpected:', type(error))
+                    logger.error('error should be a dictionnary')
+                    raise ValueError
+        except:
+            raise
 
 
     for i,k in enumerate(filein.keys()):
@@ -269,8 +268,8 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
             datasets.remove(refdataset)
 
     for k in datasets:
-        with xr.open_dataset(filein[k], use_cftime=True) as ds:
-            try:
+        try:
+            with xr.open_dataset(filein[k], use_cftime=True) as ds:
                 data = ds[varname[k]].data*coef[k]
                 if lbias:
                     nt,_ = data.shape
@@ -336,21 +335,21 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
                     namefig=tmp,\
                     **kwargs)
 
-            except (KeyError, AttributeError) as e:
-                logger.debug('Variable {2} probably unknown in dataset {0} (file={1})'.format(k,filein[k],varname[k]))
-                logger.debug('Raised error: ' + str(e))
-                if error is not None:
-                    if isinstance(error,dict):
-                        if k in error:
-                            error[k].append(varname[k])
-                        else:
-                            error[k] = [varname[k],]
+        except (KeyError, AttributeError, FileNotFoundError) as e:
+            logger.debug('Variable {2} probably unknown in dataset {0} (file={1})'.format(k,filein[k],varname[k]))
+            logger.debug('Raised error: ' + str(e))
+            if error is not None:
+                if isinstance(error,dict):
+                    if k in error:
+                        error[k].append(varname[k])
                     else:
-                        logger.error('type of error unexpected:', type(error))
-                        logger.error('error should be a dictionnary')
-                        raise ValueError
-            except:
-                raise
+                        error[k] = [varname[k],]
+                else:
+                    logger.error('type of error unexpected:', type(error))
+                    logger.error('error should be a dictionnary')
+                    raise ValueError
+        except:
+            raise
 
 def get_time_labels(tmin, tmax, tunits, dtlabel):
 
