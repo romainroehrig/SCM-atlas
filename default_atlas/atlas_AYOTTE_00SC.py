@@ -1,26 +1,29 @@
-# -*- coding:UTF-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
-import sys
-sys.path = ['./','../utils/'] + sys.path
+import os
 
 from collections import OrderedDict
 
-import cdtime
-from matplotlib import cm # for colormaps
+import atlas1d
+from atlas1d.Dataset import Dataset
 
-from Dataset import Dataset
-
-import config_AYOTTE as config
+import atlas_AYOTTE
 
 ####################################
 # References for AYOTTE/00SC atlas
 ####################################
 
+dir_references = os.getenv('SCM_REFERENCES')
+
 subcase = '00SC'
 
 tmp = OrderedDict([
-       ('LES'     ,  {'ncfile': '/Users/romainroehrig/data/LES/AYOTTE/AYOTTE{0}_LES_MESONH_RR.nc'.format(subcase)     , 'line': 'k'}),
-       ('LES_csam',  {'ncfile': '/Users/romainroehrig/data/LES/AYOTTE/AYOTTE{0}_LES_MESONH_RR_csam.nc'.format(subcase), 'line': 'k.'}),
+       ('LES'     ,  {'ncfile': os.path.join(dir_references, 'AYOTTE/AYOTTE{0}_LES_MESONH_RR.nc'.format(subcase))     , 'line': 'k'}),
+       ('LES_csam',  {'ncfile': os.path.join(dir_references, 'AYOTTE/AYOTTE{0}_LES_MESONH_RR_csam.nc'.format(subcase)), 'line': 'k.'}),
        ])
 
 references = []
@@ -31,4 +34,4 @@ for ref in tmp.keys():
 # Configuration file for AYOTTE/00SC atlas
 ########################################
 
-diagnostics = config.diagnostics
+diagnostics = atlas_AYOTTE.diagnostics

@@ -11,8 +11,6 @@ import importlib
 import warnings
 warnings.filterwarnings("ignore")
 import logging
-logging.basicConfig(format='%(asctime)s - %(name)30s - %(levelname)s - %(message)s', level=logging.INFO)
-#logging.basicConfig(format='%(asctime)s - %(name)30s - %(levelname)s - %(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 from collections import OrderedDict
@@ -26,9 +24,10 @@ if __name__ == '__main__':
     # Definition of arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("-config", help="config file", type=str, required=True)
-    parser.add_argument("--pdf", help="PDF files for each case/subcase is produced",    dest='pdf', action="store_true")
-    parser.add_argument("--no-run", help="No run of the atlas. Suppose it has already been run",    dest='norun', action="store_true")
-    parser.add_argument("-v", help="Active verbosity",    dest='verbose', action="store_true")
+    parser.add_argument("--pdf", help="PDF files for each case/subcase is produced", dest='pdf', action="store_true")
+    parser.add_argument("--no-run", help="No run of the atlas. Suppose it has already been run", dest='norun', action="store_true")
+    parser.add_argument("-v", help="Active verbosity", dest='verbose', action="store_true")
+    parser.add_argument("--debug", help="Active debug mode", dest='debug', action="store_true")
 
     # Getting arguments
     args = parser.parse_args()
@@ -37,6 +36,13 @@ if __name__ == '__main__':
     lpdf = args.pdf
     lrun = not(args.norun)
     lverbose = args.verbose
+    ldebug = args.debug
+
+    # Activate debug mode
+    if ldebug:
+        logging.basicConfig(format='%(asctime)s - %(name)30s - %(levelname)s - %(message)s', level=logging.DEBUG)
+    else:
+        logging.basicConfig(format='%(asctime)s - %(name)30s - %(levelname)s - %(message)s', level=logging.INFO)
 
     # check existence of config_file and then import it
     if not(os.path.isfile(config_file)):

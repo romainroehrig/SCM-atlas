@@ -126,15 +126,15 @@ diagnostics = OrderedDict([
     }), # end TS_cloud  
     #######################
     ("hour7-8_basic",{
-        'head'     : 'Basic 7-8h'            ,
-        'type'     : 'plotAvgP'              ,
+        'head'     : 'Basic 7-8h'             ,
+        'type'     : 'plotAvgP'               ,
         'tmin'     : tmin + timedelta(hours=7),
         'tmax'     : tmin + timedelta(hours=8),  
-        'ymin'     : 0.                      ,
-        'ymax'     : 4.                      ,
-        'yname'    : 'altitude (km)'         ,
-        'levunits' : 'km'                    ,
-        'rtitle'   : '7-8 hour'              ,        
+        'ymin'     : 0.                       ,
+        'ymax'     : 4.                       ,
+        'yname'    : 'altitude (km)'          ,
+        'levunits' : 'km'                     ,
+        'rtitle'   : '7-8 hour'               ,        
         'variables': OrderedDict([
             ('u',        {'xmin':    0.  , 'xmax':  12. , 'init':True }),
             ('v',        {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
@@ -149,15 +149,15 @@ diagnostics = OrderedDict([
     }), # end hour7-8_basic   
     #######################
     ("hour9-10_basic",{
-        'head'     : 'Basic 9-10h'            ,
-        'type'     : 'plotAvgP'               ,
+        'head'     : 'Basic 9-10h'             ,
+        'type'     : 'plotAvgP'                ,
         'tmin'     : tmin + timedelta(hours=9) ,
         'tmax'     : tmin + timedelta(hours=10),  
-        'ymin'     : 0.                       ,
-        'ymax'     : 4.                       ,
-        'yname'    : 'altitude (km)'          ,
-        'levunits' : 'km'                     ,
-        'rtitle'   : '9-10 hour'              ,        
+        'ymin'     : 0.                        ,
+        'ymax'     : 4.                        ,
+        'yname'    : 'altitude (km)'           ,
+        'levunits' : 'km'                      ,
+        'rtitle'   : '9-10 hour'               ,        
         'variables': OrderedDict([
             ('u',        {'xmin':    0.  , 'xmax':  12. , 'init':True }),
             ('v',        {'xmin':   -3.  , 'xmax':   3. , 'init':True }),

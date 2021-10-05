@@ -1,21 +1,20 @@
-# -*- coding:UTF-8 -*-
-
-import sys
-sys.path = ['./','../utils/'] + sys.path
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
 from collections import OrderedDict
 
-import cdtime
+from datetime import datetime, timedelta
 from matplotlib import cm # for colormaps
-
-from Dataset import Dataset
 
 ####################################
 # Configuration file for AYOTTE atlas
 ####################################
 
-tmin = cdtime.comptime(2009,12,11,10)
-tmax = cdtime.comptime(2009,12,11,17)
+tmin = datetime(2009,12,11,10)
+tmax = datetime(2009,12,11,17)
 
 diagnostics = OrderedDict([
     ("2D",{
@@ -30,9 +29,9 @@ diagnostics = OrderedDict([
         'dtlabel'  : '1h'                   ,
         'xname'    : 'Hours since beginning',
         'variables': OrderedDict([
-            ('theta', {'levels': range(300,316,1), 'extend':'both'}),
-            ('u',     {'levels': range(-1,16,1)  , 'extend':'both'}),
-            ('v',     {'levels': range(-6,7,1)   , 'extend':'both'}),
+            ('theta', {'levels': list(range(300,316,1)), 'extend':'both'}),
+            ('u',     {'levels': list(range(-1,16,1))  , 'extend':'both'}),
+            ('v',     {'levels': list(range(-6,7,1))   , 'extend':'both'}),
         ]),
     }), # end 2D
     #######################
@@ -65,15 +64,15 @@ diagnostics = OrderedDict([
     }), # end TS_cloud  
     #######################
     ("hour4-5_basic",{
-        'head'     : 'Basic 4-5h'           ,
-        'type'     : 'plotAvgP'             ,
-        'tmin'     : tmin.add(4,cdtime.Hour),
-        'tmax'     : tmin.add(5,cdtime.Hour),  
-        'ymin'     : 0.                     ,
-        'ymax'     : 2.5                    ,
-        'yname'    : 'altitude (km)'        ,
-        'levunits' : 'km'                   ,
-        'rtitle'   : '4-5 hour'             ,        
+        'head'     : 'Basic 4-5h'             ,
+        'type'     : 'plotAvgP'               ,
+        'tmin'     : tmin + timedelta(hours=4),
+        'tmax'     : tmin + timedelta(hours=5),
+        'ymin'     : 0.                       ,
+        'ymax'     : 2.5                      ,
+        'yname'    : 'altitude (km)'          ,
+        'levunits' : 'km'                     ,
+        'rtitle'   : '4-5 hour'               ,        
         'variables': OrderedDict([
             ('u',        {'xmin':   -1.  , 'xmax':  17. , 'init':True }),
             ('v',        {'xmin':   -3.  , 'xmax':  10. , 'init':True }),
@@ -104,15 +103,15 @@ diagnostics = OrderedDict([
     }), # end 2D_conv
     #######################
     ("hour4-5_conv",{
-        'head'     : 'Convection 4-5h'      ,
-        'type'     : 'plotAvgP'             ,
-        'tmin'     : tmin.add(4,cdtime.Hour),
-        'tmax'     : tmin.add(5,cdtime.Hour),  
-        'ymin'     : 0.                     ,
-        'ymax'     : 2.5                    ,
-        'yname'    : 'altitude (km)'        ,
-        'levunits' : 'km'                   ,
-        'rtitle'   : '4-5 hour'             ,        
+        'head'     : 'Convection 4-5h'        ,
+        'type'     : 'plotAvgP'               ,
+        'tmin'     : tmin + timedelta(hours=4),
+        'tmax'     : tmin + timedelta(hours=5),
+        'ymin'     : 0.                       ,
+        'ymax'     : 2.5                      ,
+        'yname'    : 'altitude (km)'          ,
+        'levunits' : 'km'                     ,
+        'rtitle'   : '4-5 hour'               ,        
         'variables': OrderedDict([
             ('w_up',     {'xmin':    0.  , 'xmax':   4.  }),
             ('alpha_up', {'xmin':    0.  , 'xmax':  25.  }),

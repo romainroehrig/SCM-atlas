@@ -348,6 +348,9 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
                     logger.error('type of error unexpected:', type(error))
                     logger.error('error should be a dictionnary')
                     raise ValueError
+        except ValueError as e:
+            logger.error('Problem with dataset/varname {0}/{1} (file: {2})'.format(k,varname[k],filein[k]))
+            raise
         except:
             raise
 

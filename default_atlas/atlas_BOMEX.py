@@ -1,23 +1,29 @@
-# -*- coding:UTF-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
-import sys
-sys.path = ['./','../utils/'] + sys.path
+import os
 
 from collections import OrderedDict
 
-import cdtime
+from datetime import datetime, timedelta
 from matplotlib import cm # for colormaps
 
-from Dataset import Dataset
+import atlas1d
+from atlas1d.Dataset import Dataset
+
+dir_references = os.getenv('SCM_REFERENCES')
 
 ####################################
 # References for BOMEX atlas
 ####################################
 
 tmp = OrderedDict([
-       ('LES',      {'ncfile': '/Users/romainroehrig/data/LES/BOMEX/BOMEX_LES_MESONH_RR.nc',      'line': 'k'}),
-       ('LES_core', {'ncfile': '/Users/romainroehrig/data/LES/BOMEX/BOMEX_LES_MESONH_RR_core.nc', 'line': 'g.'}),
-       ('BLM_csam', {'ncfile': '/Users/romainroehrig/data/LES/BOMEX/BOMEX_LES_MESONH_RR_csam.nc', 'line': 'k.'}),
+       ('LES',      {'ncfile': os.path.join(dir_references, 'BOMEX/BOMEX_LES_MESONH_RR.nc'),      'line': 'k'}),
+       ('LES_core', {'ncfile': os.path.join(dir_references, 'BOMEX/BOMEX_LES_MESONH_RR_core.nc'), 'line': 'g.'}),
+       ('BLM_csam', {'ncfile': os.path.join(dir_references, 'BOMEX/BOMEX_LES_MESONH_RR_csam.nc'), 'line': 'k.'}),
        ])
 
 references = []
@@ -28,8 +34,8 @@ for ref in tmp.keys():
 # Configuration file for BOMEX atlas
 ####################################
 
-tmin = cdtime.comptime(1969,6,24,0)
-tmax = cdtime.comptime(1969,6,24,14)
+tmin = datetime(1969,6,24,0)
+tmax = datetime(1969,6,24,14)
 
 diagnostics = OrderedDict([
     ("2D_dyn",{
@@ -61,8 +67,8 @@ diagnostics = OrderedDict([
         'dtlabel'  : '1h'                ,
         'xname'    : '24 June 1969 (UTC)',
         'variables': OrderedDict([
-            ('theta', {'levels': range(298,316,1)  , 'extend':'both'                 }),
-            ('qv'   , {'levels': [0,]+range(4,19,1), 'extend':'max', 'cmap': cm.RdBu }),
+            ('theta', {'levels': list(range(298,316,1))  , 'extend':'both'                 }),
+            ('qv'   , {'levels': [0,]+list(range(4,19,1)), 'extend':'max', 'cmap': cm.RdBu }),
         ]),
     }), # end 2D_thermo
     #######################
@@ -94,8 +100,8 @@ diagnostics = OrderedDict([
         'dtlabel'  : '1h'                ,
         'xname'    : '24 June 1969 (UTC)',
         'variables': OrderedDict([
-            ('rneb', {'levels': range(0,16,1)                 , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
-            ('ql'  , {'levels': range(0,16,1)                 , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('rneb', {'levels': list(range(0,16,1))           , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('ql'  , {'levels': list(range(0,16,1))           , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
             ('qr'  , {'levels': [i*0.2 for i in range(0,21,1)], 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
         ]),
     }), # end 2D_cloud
@@ -117,15 +123,15 @@ diagnostics = OrderedDict([
     }), # end TS_cloud  
     #######################
     ("hour7-8_basic",{
-        'head'     : 'Basic 7-8h'           ,
-        'type'     : 'plotAvgP'             ,
-        'tmin'     : tmin.add(7,cdtime.Hour),
-        'tmax'     : tmin.add(8,cdtime.Hour),  
-        'ymin'     : 0.                     ,
-        'ymax'     : 4.                     ,
-        'yname'    : 'altitude (km)'        ,
-        'levunits' : 'km'                   ,
-        'rtitle'   : '7-8 hour'             ,        
+        'head'     : 'Basic 7-8h'             ,
+        'type'     : 'plotAvgP'               ,
+        'tmin'     : tmin + timedelta(hours=7),
+        'tmax'     : tmin + timedelta(hours=8),
+        'ymin'     : 0.                       ,
+        'ymax'     : 4.                       ,
+        'yname'    : 'altitude (km)'          ,
+        'levunits' : 'km'                     ,
+        'rtitle'   : '7-8 hour'               ,        
         'variables': OrderedDict([
             ('u',        {'xmin':  -12.  , 'xmax':   0. , 'init':True }),
             ('v',        {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
@@ -138,15 +144,15 @@ diagnostics = OrderedDict([
     }), # end hour7-8_basic   
     #######################
     ("hour9-10_basic",{
-        'head'     : 'Basic 9-10h'           ,
-        'type'     : 'plotAvgP'              ,
-        'tmin'     : tmin.add(9,cdtime.Hour) ,
-        'tmax'     : tmin.add(10,cdtime.Hour),  
-        'ymin'     : 0.                      ,
-        'ymax'     : 4.                      ,
-        'yname'    : 'altitude (km)'         ,
-        'levunits' : 'km'                    ,
-        'rtitle'   : '9-10 hour'             ,        
+        'head'     : 'Basic 9-10h'             ,
+        'type'     : 'plotAvgP'                ,
+        'tmin'     : tmin + timedelta(hours=9) ,
+        'tmax'     : tmin + timedelta(hours=10),  
+        'ymin'     : 0.                        ,
+        'ymax'     : 4.                        ,
+        'yname'    : 'altitude (km)'           ,
+        'levunits' : 'km'                      ,
+        'rtitle'   : '9-10 hour'               ,        
         'variables': OrderedDict([
             ('u',        {'xmin':  -12.  , 'xmax':   0. , 'init':True }),
             ('v',        {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
@@ -181,44 +187,44 @@ diagnostics = OrderedDict([
     }), # end 2D_conv
     #######################
     ("hour7-8_conv",{
-        'head'     : 'Convection 7-8h'      ,
-        'type'     : 'plotAvgP'             ,
-        'tmin'     : tmin.add(7,cdtime.Hour),
-        'tmax'     : tmin.add(8,cdtime.Hour),  
-        'ymin'     : 0.                     ,
-        'ymax'     : 4.                     ,
-        'yname'    : 'altitude (km)'        ,
-        'levunits' : 'km'                   ,
-        'rtitle'   : '7-8 hour'             ,        
+        'head'     : 'Convection 7-8h'        ,
+        'type'     : 'plotAvgP'               ,
+        'tmin'     : tmin + timedelta(hours=7),
+        'tmax'     : tmin + timedelta(hours=8),
+        'ymin'     : 0.                       ,
+        'ymax'     : 4.                       ,
+        'yname'    : 'altitude (km)'          ,
+        'levunits' : 'km'                     ,
+        'rtitle'   : '7-8 hour'               ,        
         'variables': OrderedDict([
-            ('w_up',     {'xmin':    0.  , 'xmax':   4.               }),
-            ('alpha_up', {'xmin':    0.  , 'xmax':  25.               }),
-            ('Mf',       {'xmin':    0.  , 'xmax':   0.3, 'lev':'zh'  }),
-            ('dTv_up',   {'xmin':   -1.  , 'xmax':   1.               }),
-            ('B_up',     {'xmin':   -0.02, 'xmax':   0.02             }),
-            ('eps_u',    {'xmin':   -0.5 , 'xmax':   5.               }),
-            ('det_u',    {'xmin':   -0.5 , 'xmax':   5.               }),            
+            ('w_up',     {'xmin':    0.  , 'xmax':   4.  }),
+            ('alpha_up', {'xmin':    0.  , 'xmax':  25.  }),
+            ('Mf',       {'xmin':    0.  , 'xmax':   0.3 }),
+            ('dTv_up',   {'xmin':   -1.  , 'xmax':   1.  }),
+            ('B_up',     {'xmin':   -0.02, 'xmax':   0.02}),
+            ('eps_u',    {'xmin':   -0.5 , 'xmax':   5.  }),
+            ('det_u',    {'xmin':   -0.5 , 'xmax':   5.  }),            
         ]),
     }), # end hour7-8_conv
     #######################
     ("hour9-10_conv",{
-        'head'     : 'Convection 9-10h'      ,
-        'type'     : 'plotAvgP'              ,
-        'tmin'     : tmin.add(9,cdtime.Hour) ,
-        'tmax'     : tmin.add(10,cdtime.Hour),  
-        'ymin'     : 0.                      ,
-        'ymax'     : 4.                      ,
-        'yname'    : 'altitude (km)'         ,
-        'levunits' : 'km'                    ,
-        'rtitle'   : '9-10 hour'             ,        
+        'head'     : 'Convection 9-10h'        ,
+        'type'     : 'plotAvgP'                ,
+        'tmin'     : tmin + timedelta(hours=9) ,
+        'tmax'     : tmin + timedelta(hours=10),
+        'ymin'     : 0.                        ,
+        'ymax'     : 4.                        ,
+        'yname'    : 'altitude (km)'           ,
+        'levunits' : 'km'                      ,
+        'rtitle'   : '9-10 hour'               ,        
         'variables': OrderedDict([
-            ('w_up',     {'xmin':    0.  , 'xmax':   4.               }),
-            ('alpha_up', {'xmin':    0.  , 'xmax':  25.               }),
-            ('Mf',       {'xmin':    0.  , 'xmax':   0.3, 'lev':'zh'  }),
-            ('dTv_up',   {'xmin':   -1.  , 'xmax':   1.               }),
-            ('B_up',     {'xmin':   -0.02, 'xmax':   0.02             }),
-            ('eps_u',    {'xmin':   -0.5 , 'xmax':   5.               }),
-            ('det_u',    {'xmin':   -0.5 , 'xmax':   5.               }),            
+            ('w_up',     {'xmin':    0.  , 'xmax':   4.  }),
+            ('alpha_up', {'xmin':    0.  , 'xmax':  25.  }),
+            ('Mf',       {'xmin':    0.  , 'xmax':   0.3 }),
+            ('dTv_up',   {'xmin':   -1.  , 'xmax':   1.  }),
+            ('B_up',     {'xmin':   -0.02, 'xmax':   0.02}),
+            ('eps_u',    {'xmin':   -0.5 , 'xmax':   5.  }),
+            ('det_u',    {'xmin':   -0.5 , 'xmax':   5.  }),            
         ]),
     }), # end hour9-10_conv  
     #######################
@@ -236,7 +242,7 @@ diagnostics = OrderedDict([
             ('qv',    {'xmin':  -1., 'xmax':   18.}),
             ('ql',    {'xmin':  -1., 'xmax':   20.}),
             ('qi',    {'xmin':  -1., 'xmax':    5.}),
-            ('tke',   {'xmin':  -1., 'xmax':    1., 'lev':'zh'}),
+            ('tke',   {'xmin':  -1., 'xmax':    1.}),
         ]),
     }), # end init 
     #######################
@@ -254,7 +260,7 @@ diagnostics = OrderedDict([
             ('qv',    {'xmin':  -1., 'xmax':   18.}),
             ('ql',    {'xmin':  -1., 'xmax':   20.}),
             ('qi',    {'xmin':  -1., 'xmax':    5.}),
-            ('tke',   {'xmin':  -1., 'xmax':    1., 'lev':'zh'}),
+            ('tke',   {'xmin':  -1., 'xmax':    1.}),
         ]),
     }), # end initLL 
     #######################    
