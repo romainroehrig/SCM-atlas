@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import BoundaryNorm
 from copy import copy
 
-def plot1D(x,y,lines=None,title='',xname='',yname='',xlabels=None,ylabels=None,xmin=None,xmax=None,ymin=None,ymax=None,namefig=None,lgrid=False,figsize=None):
+def plot1D(x,y,lines=None,title='',xname='',yname='',xlabels=None,ylabels=None,xmin=None,xmax=None,ymin=None,ymax=None,namefig=None,lgrid=False,lplot0=False,figsize=None):
     """
        Make a simple 1D plot
     """
@@ -61,6 +61,8 @@ def plot1D(x,y,lines=None,title='',xname='',yname='',xlabels=None,ylabels=None,x
 
     if lgrid:
         plt.grid(True,linestyle='--')
+    if lplot0 and xmin < 0 and xmax > 0:
+        plt.plot([0,0],[ymin,ymax], color='k', linestyle='--')
 
     if namefig is None:
         plt.show()
@@ -96,7 +98,7 @@ def plot2D(x,y,data,cmap=plt.cm.RdBu,levels=None,firstwhite=False,badcolor='dark
         cs = plt.pcolormesh(x,y,data, cmap=cmaploc, shading='auto')
         plt.colorbar(cs,extend=extend) 
     else:
-        norm = BoundaryNorm(levels, ncolors=cmaploc.N, clip=False)
+        norm = BoundaryNorm(levels, ncolors=cmaploc.N, clip=False, extend=extend)
         cs = plt.pcolormesh(x,y,data, cmap=cmaploc, norm=norm, shading='auto')
         plt.colorbar(cs,ticks=levels,extend=extend)
 

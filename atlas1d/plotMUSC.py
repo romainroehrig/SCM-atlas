@@ -93,7 +93,7 @@ def plot_timeseries(filein,varname,coef=None,units='',tmin=None,tmax=None,dtlabe
         raise
 
 
-def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits='km',tt=None,tmin=None,tmax=None,init=False,t0=False,lbias=False,refdataset=None,error=None,**kwargs):
+def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits='km',tt=None,tmin=None,tmax=None,init=False,t0=False,lbias=False,refdataset=None,error=None,labove_surface=False,**kwargs):
     """
        Do a profile plot of varname for several MUSC files
     """
@@ -104,7 +104,7 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
         coef = {k: 1. for k in filein.keys()}
     
     if lev is None:
-        lev = {k: 'zf' for k in filein.keys()}
+        lev = {k: 'zfull' for k in filein.keys()}
     if isinstance(lev,str):
       lev = {k: lev for k in filein.keys()}
 
@@ -201,6 +201,7 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
                 raise ValueError
 
         level['init'] = update_level(level['init'], lev[kref], levunits)
+        lev['init'] = lev[kref]
 
         if lines is None:
             lines = {}
@@ -218,10 +219,16 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
                     data[k] = data[k]-data[refdataset]
             data[refdataset] = data[refdataset]*0.
 
+    if labove_surface:
+        # Consider altitude above surface rather than above sea level
+        for k in level:
+            if lev[k] in ['zhalf', 'zfull']: # not fully satisfactory with zfull...
+                level[k] -= np.min(level[k])
+
     plotutils.plot1D(data,level,lines=lines,**kwargs)
 
 
-def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tmax=None,dtlabel='1h',namefig=None,lbias=False,refdataset=None,error=None,**kwargs):
+def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tmax=None,dtlabel='1h',namefig=None,lbias=False,refdataset=None,error=None,labove_surface=False,**kwargs):
     """
        Do a 2D plot of varname for several MUSC file
     """
@@ -239,7 +246,7 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
         coef = {k: coef for k in filein.keys()}
     
     if lev is None:
-        lev = {k: 'zh' for k in filein.keys()}
+        lev = {k: 'zhalf' for k in filein.keys()}
         levunits = {k: 'km' for k in filein.keys()}
     elif isinstance(lev,str):
         lev = {k: lev for k in filein.keys()}
@@ -247,9 +254,9 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
     if levunits is None:
         levunits = {}
         for k in filein.keys():
-            if lev[k] == 'zh':
+            if lev[k] == 'zhalf':
                 levunits[k] = 'km'
-            elif lev[k] in['ph','pf']:
+            elif lev[k] in ['phalf','pfull']:
                 levunits[k] = 'hPa'
             else:
                 logger.error('lev={} not coded yet'.format(lev[k]))
@@ -292,30 +299,47 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
                 tmax_rel = cftime.date2num(tmax, tunits)
 
                 time = cftime.date2num(time, tunits)
-                    
-      
+                dt = time[1] - time[0]
+
+                nt0, nlev0 = data.shape
+                time1 = np.zeros(nt0+1)
+                time1[0:nt0] = time[:]-dt/2
+                time1[nt0] = time[-1]+dt/2
+                
                 try:
                     levax = ds[lev[k]].data
                 except:
-                    if lev[k] == 'zh':
-                        levax = ds.zf.data
-                    if lev[k] == 'ph':
-                        levax = ds.pf.data         
+                    if lev[k] == 'zhalf':
+                        levax = ds.zfull.data
+                    if lev[k] == 'phalf':
+                        levax = ds.pfull.data         
 
                 levax = update_level(levax, lev[k], levunits[k])
       
                 if len(levax.shape) == 2:
                     nt,nlev = levax.shape
-                    timeax = np.tile(time[:],(nlev,1))
-                    X = timeax
-                    Y = np.transpose(levax)
+                    if nlev == nlev0+1:
+                        time = time1
+                        levax1 = np.zeros((nt0+1,nlev))
+                        levax1[0,:] = levax[0,:]
+                        levax1[1:nt0+1,:] = levax[:,:]
+                        levax = levax1
                 else:
                     nlev, = levax.shape
+                    if nlev == nlev0+1:
+                        time = time1
                     nt, = time.shape
-                    timeax = np.tile(time[:],(nlev,1))
                     levax = np.tile(levax,(nt,1))
-                    X = np.array(timeax[:])
-                    Y = np.transpose(levax[:])
+
+                timeax = np.tile(time[:],(nlev,1))
+
+                X = np.array(timeax[:])
+                Y = np.transpose(levax[:])
+
+                if labove_surface:
+                    # Consider altitude above surface rather than above sea level
+                    if lev[k] in ['zhalf', 'zfull']: # not fully satisfactory with zfull...
+                        Y -= np.min(Y)
 
                 if isinstance(namefig,str):
                     tmp = k + '_' + namefig
@@ -418,24 +442,24 @@ def get_time_labels(tmin, tmax, tunits, dtlabel):
 
 def get_level(ds, lev, nlev=None):
 
-    if lev == 'zf':
+    if lev == 'zfull':
         level = ds[lev]
-    elif lev == 'zh':
+    elif lev == 'zhalf':
         try:
             level = ds[lev]
         except:
             try:
-                level = ds['zf']
+                level = ds['zfull']
             except:
                 raise
-    elif lev == 'pf':
+    elif lev == 'pfull':
         level = ds[lev]
-    elif lev == 'ph':
+    elif lev == 'phalf':
         try:
             level = ds[lev]
         except:
             try:
-                level = ds['pf']
+                level = ds['pfull']
             except:
                 raise
     else:
@@ -449,20 +473,20 @@ def get_level(ds, lev, nlev=None):
             nlev_loc, = level.shape
 
         if nlev != nlev_loc:
-            if lev == 'zf':
-                level = ds['zh']
-            elif lev == 'zh':
-                level = ds['zf']
-            elif lev == 'pf':
-                level = ds['ph']
-            elif lev == 'ph':
-                level = ds['pf']
+            if lev == 'zfull':
+                level = ds['zhalf']
+            elif lev == 'zhalf':
+                level = ds['zfull']
+            elif lev == 'pfull':
+                level = ds['phalf']
+            elif lev == 'phalf':
+                level = ds['pfull']
 
     return level
 
 def update_level(level, levname, levunits):
 
-    if levname in ['zf','zh']:
+    if levname in ['zfull','zhalf']:
         if levunits == 'm':
             levelloc = level
         elif levunits == 'km':
@@ -470,7 +494,7 @@ def update_level(level, levname, levunits):
         else:
             logger.error('levunits={0} for levname={1} not coded yet'.format(levunits,levname))
             raise NotImplementedError
-    elif levname in ['pf','ph']:
+    elif levname in ['pfull','phalf']:
         if levunits == 'Pa':
             levelloc = level
         elif levunits == 'hPa':

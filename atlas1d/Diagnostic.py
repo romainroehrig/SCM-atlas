@@ -24,7 +24,7 @@ from variables_info import variables_info, var2compute
 
 lverbose = False
 
-_known_diagnostics = ['plot2D','plotTS','plotInstP','plotAvgP']
+_known_diagnostics = ['plot2D','plotTS','plotInstP','plotAvgP','plotInitP']
 _diag_names = {
         'plot2D':    '2D time-level plot'                 ,
         'plotTS':    'Time series plot'                   ,
@@ -146,10 +146,10 @@ class Diagnostic:
 
             if lcompute:
                 plotdico = {
-                    'lev'       : 'zh'                                                      ,
+                    'lev'       : 'zhalf'                                                   ,
                     'minmax'    : True                                                      ,
                     'units'     : variables_info[self.variable]['units']                    ,
-                    'title'     : '{0} ({1})'.format(variables_info[self.variable]['name'],
+                    'title'     : '{0} ({1})'.format(variables_info[self.variable]['name']  ,
                                                      variables_info[self.variable]['units']),
                     'extend'    : 'neither'                                                 ,
                     'firstwhite': False                                                     ,
@@ -220,11 +220,12 @@ class Diagnostic:
                     'title'  : '{0} ({1}) - {2}'.format(variables_info[self.variable]['name'],
                                                         variables_info[self.variable]['units'],
                                                         self.plot_details['rtitle']),
-                    'lev'    : 'zf'                                                 ,
+                    'lev'    : 'zfull'                                              ,
                     'init'   : False                                                ,
                     'lbias'  : False                                                ,
                     'units'  : variables_info[self.variable]['units']               ,
                     'lines'  : lines                                                ,
+                    'lplot0' : True                                                 ,
                     'namefig': '{0}/AvgP_{1}.png'.format(root_dir,self.variable)    ,
                     }
                 self.output = plotdico['namefig']
@@ -246,11 +247,12 @@ class Diagnostic:
                 plotdico = {
                     'title'  : '{0} ({1}) - First timestep'.format(variables_info[self.variable]['name'],
                                                                     variables_info[self.variable]['units']),
-                    'lev'    : 'zf'                                                                        ,
+                    'lev'    : 'zfull'                                                                     ,
                     'init'   : False                                                                       ,
                     'lbias'  : False                                                                       ,
                     'units'  : variables_info[self.variable]['units']                                      ,
                     'lines'  : lines                                                                       ,
+                    'lplot0' : True                                                                        ,
                     'namefig': '{0}/InitP_{1}.png'.format(root_dir,self.variable)                          ,
                     }
                 self.output = plotdico['namefig']
