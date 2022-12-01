@@ -265,12 +265,14 @@ class Atlas:
         f.write('<table style="border-collapse: collapse; width: {0}%; height: 18px;" border="0"><tbody>\n'.format(width+5))
         f.write('<tr style="height: 18px;">')
         f.write('<td style="width: 5%; height: 18px;"><strong>{0}/{1}</strong></td>\n'.format(self.case,self.subcase))
-        for group in self.grouplist:
+        for igroup, group in enumerate(self.grouplist):
             #f.write('<td style="width: {0}%; height: 18px;"><a href="file://{1}/{2}.html">{3}</a></td>\n'.format(
             #    int(len(group.head)*width_per_letter),self.html_dir,group.name,group.head,))            
             f.write('<td style="width: {0}%; height: 18px;"><a href="{1}.html">{2}</a></td>\n'.format(
                 int(len(group.head)*width_per_letter),group.name,group.head,))
-            group.tohtml(root_dir=self.html_dir,index=index)
+            group.tohtml(root_dir=self.html_dir, index=index,
+                         prevgroup=self.grouplist[igroup - 1] if igroup != 0 else None,
+                         nextgroup=self.grouplist[igroup + 1] if igroup + 1 < len(self.grouplist) else None)
 
         f.write('</tr>\n')
         f.write('</tbody></table>\n')
