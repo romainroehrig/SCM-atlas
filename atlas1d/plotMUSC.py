@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Copyright (c) Météo France (2014-)
 # This software is governed by the CeCILL-C license under French law.
@@ -93,9 +93,13 @@ def plot_timeseries(filein,varname,coef=None,units='',tmin=None,tmax=None,dtlabe
         raise
 
 
-def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits='km',tt=None,tmin=None,tmax=None,init=False,t0=False,lbias=False,refdataset=None,error=None,**kwargs):
+def plot_profile(filein, varname, lines=None, coef=None, units='',
+                 levunits='km', tt=None, tmin=None, tmax=None,
+                 init=False, t0=False, lbias=False, refdataset=None,
+                 error=None, **kwargs):
     """
-       Do a profile plot of varname for several MUSC files
+    Do a profile plot of varname for several MUSC files
+    :param levunits: 'Pa'/'hPa' for pressure levels or 'm'/'km' for height levels
     """
 
     data = OrderedDict()
@@ -103,19 +107,14 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
     if coef is None:
         coef = {k: 1. for k in filein.keys()}
     
-    if lev is None:
-        lev = {k: 'zf' for k in filein.keys()}
-    if isinstance(lev,str):
-      lev = {k: lev for k in filein.keys()}
-
-    for i,k in enumerate(filein.keys()):
+    for i, k in enumerate(filein.keys()):
         try:
             with xr.open_dataset(filein[k], use_cftime=True) as ds:
                 time = ds[varname[k]].time.data
                 if tmin is not None and tmax is not None:
 
                     data[k] = np.average(ds[varname[k]].sel(time=slice(tmin,tmax)).data,axis=0)*coef[k]
-                    level[k] = get_level(ds, lev[k], nlev=data[k].shape[0])
+                    level[k] = get_level_from_units(ds, levunits, varname[k])
 
                     if len(level[k].shape) == 2:
                         level[k] = np.average(level[k].sel(time=slice(tmin,tmax)).data,axis=0)
@@ -123,7 +122,7 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
                 elif t0:
 
                     data[k] = ds[varname[k]].data[0,:]*coef[k]
-                    level[k] = get_level(ds, lev[k], nlev=data[k].shape[0])
+                    level[k] = get_level_from_units(ds, levunits, varname[k])
 
                     if len(level[k].shape) == 2:
                         level[k] = level[k].data[0,:]
@@ -150,7 +149,7 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
                     logger.debug('tt = ' + tt.isoformat())
 
                     data[k] = ds[varname[k]].sel(time=tt, method='nearest').data*coef[k]
-                    level[k] = get_level(ds, lev[k], nlev=data[k].shape[0])
+                    level[k] = get_level_from_units(ds, levunits, varname[k])
 
                     if len(level[k].shape) == 2:
                         level[k] = level[k].sel(time=tt, method='nearest').data
@@ -180,18 +179,16 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
             raise
 
 
-    for i,k in enumerate(filein.keys()):
+    for i, k in enumerate(filein.keys()):
 
         if data[k] is None:
             del(data[k])
             del(level[k])
-        else:
-            level[k] = update_level(level[k], lev[k], levunits)
 
     if init: # Adding initial profiles on plot
         with xr.open_dataset(filein[kref]) as ds:
             data['init'] = ds[varname[kref]].data[0,:]*coef[k]
-            tmp = get_level(ds, lev[kref], nlev=data['init'].shape[0])
+            tmp = get_level_from_units(ds, levunits, varname[kref])
             if len(tmp.shape) == 2:
                 level['init'] = tmp[0,:]
             elif len(tmp.shape) == 1:
@@ -200,13 +197,9 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
                 logger.error('level shape unexpected:', tmp.shape)
                 raise ValueError
 
-        level['init'] = update_level(level['init'], lev[kref], levunits)
-
         if lines is None:
             lines = {}
         lines['init'] = 'k--'
-
-
 
     if lbias:
         if refdataset is None:
@@ -221,9 +214,16 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
     plotutils.plot1D(data,level,lines=lines,**kwargs)
 
 
-def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tmax=None,dtlabel='1h',namefig=None,lbias=False,refdataset=None,error=None,**kwargs):
+def plot2D(filein, varname, coef=None, units='', levunits='km',
+           tmin=None, tmax=None, dtlabel='1h', namefig=None, lbias=False,
+           refdataset=None, error=None, **kwargs):
     """
-       Do a 2D plot of varname for several MUSC file
+    Do a 2D plot of varname for several MUSC file
+    :param filein: dict containing the different file names
+    :param varname: dict holding the variable name for each dataset
+    :param coef:
+    :param units:
+    :param levunits: 'Pa'/'hPa' for pressure levels or 'm'/'km' for height levels
     """
 
     title0 = kwargs['title']
@@ -237,25 +237,6 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
         coef = {k: 1. for k in filein.keys()}
     elif isinstance(coef,int) or isinstance(coef,float):
         coef = {k: coef for k in filein.keys()}
-    
-    if lev is None:
-        lev = {k: 'zh' for k in filein.keys()}
-        levunits = {k: 'km' for k in filein.keys()}
-    elif isinstance(lev,str):
-        lev = {k: lev for k in filein.keys()}
-
-    if levunits is None:
-        levunits = {}
-        for k in filein.keys():
-            if lev[k] == 'zh':
-                levunits[k] = 'km'
-            elif lev[k] in['ph','pf']:
-                levunits[k] = 'hPa'
-            else:
-                logger.error('lev={} not coded yet'.format(lev[k]))
-                raise NotImplementedError
-    elif isinstance(levunits,str):
-        levunits = {k: levunits for k in filein.keys()}
 
     datasets = filein.keys()
     if lbias:
@@ -292,17 +273,8 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
                 tmax_rel = cftime.date2num(tmax, tunits)
 
                 time = cftime.date2num(time, tunits)
-                    
-      
-                try:
-                    levax = ds[lev[k]].data
-                except:
-                    if lev[k] == 'zh':
-                        levax = ds.zf.data
-                    if lev[k] == 'ph':
-                        levax = ds.pf.data         
 
-                levax = update_level(levax, lev[k], levunits[k])
+                levax = get_level_from_units(ds, levunits, varname[k]).data
       
                 if len(levax.shape) == 2:
                     nt,nlev = levax.shape
@@ -416,67 +388,53 @@ def get_time_labels(tmin, tmax, tunits, dtlabel):
 
     return tt, tlabels
 
-def get_level(ds, lev, nlev=None):
-
-    if lev == 'zf':
-        level = ds[lev]
-    elif lev == 'zh':
-        try:
-            level = ds[lev]
-        except:
-            try:
-                level = ds['zf']
-            except:
-                raise
-    elif lev == 'pf':
-        level = ds[lev]
-    elif lev == 'ph':
-        try:
-            level = ds[lev]
-        except:
-            try:
-                level = ds['pf']
-            except:
-                raise
+def get_level_from_units(ds, levunits,  varname):
+    """
+    Get the levels
+    :param ds: dataset to use
+    :param levunits: units of the vertical levels
+    :param varname: varname to which we want to assocaite vertical levels
+    """
+    if levunits in ('m', 'km'):
+        levds = ['zf', 'zh']
+    elif levunits in ('Pa', 'hPa'):
+        levds = ['pf', 'ph']
     else:
-        logger.error('Level unexpected: {0}'.forma(lev))
+        logger.error('levunits={} not coded yet'.format(levkind))
         raise NotImplementedError
 
-    if nlev is not None:
-        if len(level.shape) == 2:
-            _, nlev_loc = level.shape
-        else:
-            nlev_loc, = level.shape
-
-        if nlev != nlev_loc:
-            if lev == 'zf':
-                level = ds['zh']
-            elif lev == 'zh':
-                level = ds['zf']
-            elif lev == 'pf':
-                level = ds['ph']
-            elif lev == 'ph':
-                level = ds['pf']
-
-    return level
+    levax = None
+    for c in levds:
+        if c in ds and ds[c].dims[-1] == ds[varname].dims[-1]:
+            levax = ds[c]
+            levax.data = update_level(levax.data, c, levunits)
+    if levax is None:
+        logger.error('No suitable vertical coordinate found for {}'.format(varname))
+        raise NotImplementedError('Something is certainly missing here')
+    return levax
 
 def update_level(level, levname, levunits):
-
-    if levname in ['zf','zh']:
+    """
+    Modify the units of the vertical levels
+    :param level: level array
+    :param levname: name of the dataset used to read the levels
+    :param levunits: wanted unit for the vertical coordinate
+    """
+    if levname in ['zf', 'zh']:
         if levunits == 'm':
             levelloc = level
         elif levunits == 'km':
-            levelloc = level/1000.
+            levelloc = level / 1000.
         else:
-            logger.error('levunits={0} for levname={1} not coded yet'.format(levunits,levname))
+            logger.error('levunits={0} for levname={1} not coded yet'.format(levunits, levname))
             raise NotImplementedError
-    elif levname in ['pf','ph']:
+    elif levname in ['pf', 'ph']:
         if levunits == 'Pa':
             levelloc = level
         elif levunits == 'hPa':
-            levelloc = level/100.
+            levelloc = level / 100.
         else:
-            logger.error('levunits={} for levname={1} not coded yet'.format(levunits,levname))
+            logger.error('levunits={} for levname={1} not coded yet'.format(levunits, levname))
             raise NotImplementedError
     else:
         logger.error('levname={} not coded yet'.format(levname))

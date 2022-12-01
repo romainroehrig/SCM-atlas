@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding:UTF-8 -*-
 # Copyright (c) Météo France (2014-)
 # This software is governed by the CeCILL-C license under French law.
@@ -139,21 +139,22 @@ def f_zct(zf,zneb):
 
     return zct
 
-def f_int(ph,var2int):
-
-    nt,nlev = var2int.shape
-    zout = np.zeros(nt,dtype=np.float)
-
+def f_int(ph, var2int):
+    """
+    Computes the vertical integration of variable
+    :param ph: flux level pressure
+    :param var2int: variable to integrate
+    :return: vertically integrated variable
+    """
+    nt, _ = var2int.shape
     if len(ph.shape) == 1:
-        ph = np.tile(ph.data,(nt,1))
+        ph = np.tile(ph.data, (nt, 1))
 
-    if ph[0,0] < ph[0,1]:
-        lpos = 1
-    else:
-        lpos = -1
-    for ilev in range(0,nlev):
-        dp = (ph[:,ilev+1]-ph[:,ilev])*lpos
-        zout[:] = zout[:] + var2int[:,ilev]*dp/cc.g
+    ph = np.array(ph) #conversion into numpy array because with xarray, if ph.shape[1] is 91,
+                      #dp.shape[1] is only 89 instead of the expected 90 obtained with numpy
+    lpos = 1 if ph[0, 0] < ph[0, 1] else -1
+    dp = (ph[:, 1:] - ph[:, :-1]) * lpos
+    zout = (var2int[:, :] * dp / cc.g).sum(axis=1)
 
     zout = xr.DataArray(zout, coords=[var2int.time,])
     zout.encoding = encoding
@@ -460,17 +461,17 @@ def compute(filein, fileout, var):
             add_qsn_to_dataset(ds)
         elif var == 'lwp':
             tmp = get_ql(ds)
-            ds['lwp'] = f_int(ds.zh, tmp)
+            ds['lwp'] = f_int(ds.ph, tmp)
             ds['lwp'].attrs['long_name'] = 'Liquid water path'
             ds['lwp'].attrs['units'] = 'kg m-2'
         elif var == 'rwp':
             tmp = get_qr(ds)
-            ds['rwp'] = f_int(ds.zh, tmp)
+            ds['rwp'] = f_int(ds.ph, tmp)
             ds['rwp'].attrs['long_name'] = 'Rain water path'
             ds['rwp'].attrs['units'] = 'kg m-2'
         elif var == 'iwp':
             tmp = get_qi(ds)
-            ds['iwp'] = f_int(ds.zh, tmp)
+            ds['iwp'] = f_int(ds.ph, tmp)
             ds['iwp'].attrs['long_name'] = 'Ice water path'
             ds['iwp'].attrs['units'] = 'kg m-2'
         elif var == 'theta_0_500':
@@ -515,6 +516,9 @@ def compute(filein, fileout, var):
             ds[var] = f_thetal(ds)
         elif var == 'qt':
             ds[var] = f_qt(ds)
+        elif var == 'rain':
+            if 'rain' not in ds:
+                ds[var] = ds.ppr[:, 0 if ds.zh[0, 0] < ds.zh[0, 1] else -1]
         else:
             logger.error('variable to be computed is unknown:', var)
             raise NotImplementedError
