@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding:UTF-8 -*-
 # Copyright (c) Météo France (2014-)
 # This software is governed by the CeCILL-C license under French law.
@@ -95,7 +95,7 @@ class DiagGroup:
         for diag in self.diaglist:
             diag.run(self.datasets,root_dir=loc_dir,lcompute=lcompute)
 
-    def tohtml(self,index=None,root_dir=None):
+    def tohtml(self,index=None,root_dir=None, prevgroup=None, nextgroup=None):
 
         if root_dir is None:
             logger.error('root_dir is None for DiagGroup {0}'.format(self.name))
@@ -117,10 +117,56 @@ class DiagGroup:
                                    (diag.diag_type == 'plotInitP'))
 
         f = open('{0}/{1}.html'.format(root_dir,self.name),'w')
-        f.write('<head><title>{0}/{1}/{2}</title></head>\n'.format(dat.case,dat.subcase,self.name))
+        f.write('<head>')
+        f.write('<title>{0}/{1}/{2}</title>'.format(dat.case,dat.subcase,self.name))
+        f.write("""
+<script type="text/javascript">
+  function hideoverlay(){
+    document.getElementById("overlay").style.display = 'none';
+  }
+  function showimage(url){
+    document.getElementById("overlayimage").src = url;
+    document.getElementById("overlay").style.display = 'flex';
+  }
+</script>""")
+        f.write("""
+<style>
+  /* For the div that can contain the image */
+  #overlay {
+    background-color: #ccc;
+    position:fixed; /* Follow screen scrolling */
+    width:100%;     /* Full viewable area */
+    height:100%;
+    top:0px;
+    left:0px;
+    z-index:1000;   /* On top */
+    justify-content:center; /* Centered (vertically and horizontally) content */
+    align-items:center;
+    display:none; /* Not displayed on loading */
+  }
+
+  /* Image displayed in the overlay div */
+  #overlayimage {
+    width:100%; /* Fill the div but respecting tha aspect ratio */
+    height:100%;
+    object-fit:contain
+  }
+</style>""")
+        f.write('</head>\n')
+        f.write('<div id="overlay" onclick="hideoverlay()"><img id="overlayimage" src=''/></div>')
         f.write('<h1 style="text-align: center;">{0}/{1}: {2}</h1>\n'.format(dat.case,dat.subcase,self.head))
         #f.write('<a href="file://{0}">Back to main index</a>\n'.format(index))
+        #f.write('<a href="../../../html/index.html">Back to main index</a>\n')
+        f.write('<div style="display:flex; flex-flow:row wrap;">')
+        f.write('<p style="width:33.33333%; text-align:left;">')
+        if prevgroup is not None:
+            f.write('<a href="{0}.html">{1}</a>'.format(prevgroup.name, prevgroup.head))
+        f.write('</p><p style="width:33.33333%; text-align:center;">')
         f.write('<a href="../../../html/index.html">Back to main index</a>\n')
+        f.write('</p><p style="width:33.33333%; text-align:right;">')
+        if nextgroup is not None:
+            f.write('<a href="{0}.html">{1}</a>'.format(nextgroup.name, nextgroup.head))
+        f.write('</p></div>')
         if all2D:
             for diag in self.diaglist:
                 f.write('<ul><li><h3><span style="text-decoration: underline;"><strong>{0}</strong></span></h3></li></ul>\n'.format(diag.name))
@@ -138,7 +184,7 @@ class DiagGroup:
                         #f.write('<td> <img src="file://{0}" style="width: {1}px;"/> </td>\n'.format(diag.output[diags[j]],width))
                         path = diag.output[diags[j]].split('/')
                         path = os.path.join('..',path[-2],path[-1])
-                        f.write('<td> <img src="{0}" style="width: {1}px;"/> </td>\n'.format(path,width))
+                        f.write('<td> <img onclick="showimage(\'{0}\');" src="{0}" style="width: {1}px;"/> </td>\n'.format(path,width))
                     f.write('</tr></table>\n')
         elif all1D:
             nplot_per_line = 4
@@ -151,7 +197,7 @@ class DiagGroup:
                         #f.write('<td> <img src="file://{0}" style="width: {1}px;"/> </td>\n'.format(self.diaglist[i*nplot_per_line+j].output,width))
                         path = self.diaglist[i*nplot_per_line+j].output.split('/')
                         path = os.path.join('..',path[-2],path[-1])
-                        f.write('<td> <img src="{0}" style="width: {1}px;"/> </td>\n'.format(path,width))
+                        f.write('<td> <img onclick="showimage(\'{0}\');" src="{0}" style="width: {1}px;"/> </td>\n'.format(path,width))
                 f.write('</tr></table>\n')
         else:
             logger.error('mixed case not coded yet')

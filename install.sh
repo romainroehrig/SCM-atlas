@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -evx
 
@@ -38,14 +38,18 @@ fi
 
 #####################################################
 # Download and install SCM-atlas in DIR_ATLAS
-[ -d $DIR_ATLAS ] || mkdir -p $DIR_ATLAS
-cd $DIR_ATLAS
-
-wget https://github.com/romainroehrig/SCM-atlas/archive/V${ATLAS_VERSION}.tar.gz
-tar zxvf V${ATLAS_VERSION}.tar.gz
-rm -f V${ATLAS_VERSION}.tar.gz
-mv SCM-atlas-${ATLAS_VERSION}/* .
-rm -rf SCM-atlas-${ATLAS_VERSION}
+if [ "${ATLAS_VERSION}" == 'git' ]; then
+  git clone https://github.com/romainroehrig/SCM-atlas.git $DIR_ATLAS
+else
+  [ -d $DIR_ATLAS ] || mkdir -p $DIR_ATLAS
+  cd $DIR_ATLAS
+  
+  wget https://github.com/romainroehrig/SCM-atlas/archive/V${ATLAS_VERSION}.tar.gz
+  tar zxvf V${ATLAS_VERSION}.tar.gz
+  rm -f V${ATLAS_VERSION}.tar.gz
+  mv SCM-atlas-${ATLAS_VERSION}/* .
+  rm -rf SCM-atlas-${ATLAS_VERSION}
+fi
 
 #####################################################
 # Prepare what is needed to run SCM-atlas simulations in DIR_RUN

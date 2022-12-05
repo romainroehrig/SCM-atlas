@@ -1,4 +1,4 @@
-var2compute = ['zcb','zct','ql','qr','lwp','rwp','qt','thetal']
+var2compute = ['zcb', 'zct', 'ql', 'qr', 'lwp', 'rwp', 'qt', 'thetal', 'rain']
 
 variables_info = {
         # 2D Variables
