@@ -8,6 +8,8 @@ import os
 
 from collections import OrderedDict
 
+import numpy as np
+
 from datetime import datetime, timedelta
 from matplotlib import cm # for colormaps
 
@@ -20,20 +22,20 @@ dir_references = os.getenv('SCM_REFERENCES')
 # References for AYOTTE/00SC atlas
 ####################################
 
-tmp = OrderedDict([
-       ('MO'     ,  {'ncfile': os.path.join(dir_references, 'GABLS1/files/MO_1m_allvar.nc'), 'line': 'k'}),
-       ])
+#tmp = OrderedDict([
+#       ('MO'     ,  {'ncfile': os.path.join(dir_references, 'GABLS1/files/MO_1m_allvar.nc'), 'line': 'k'}),
+#       ])
 
 references = []
-for ref in tmp.keys():
-    references.append(Dataset(name=ref,case='GABLS1',subcase='REF',ncfile=tmp[ref]['ncfile'],line=tmp[ref]['line']))
+#for ref in tmp.keys():
+#    references.append(Dataset(name=ref,case='GABLS1',subcase='REF',ncfile=tmp[ref]['ncfile'],line=tmp[ref]['line']))
 
 ####################################
 # Configuration file for GABLS1 atlas
 ####################################
 
-tmin = datetime(2000,1,1,10)
-tmax = datetime(2000,1,1,19)
+tmin = datetime(2009,12,11,0)
+tmax = datetime(2009,12,12,12)
 
 diagnostics = OrderedDict([
     ("2D",{
@@ -45,13 +47,13 @@ diagnostics = OrderedDict([
         'ymax'     :    400                 ,
         'yname'    : 'altitude (m)'         ,
         'levunits' : 'm'                    ,
-        'dtlabel'  : '1h'                   ,
+        'dtlabel'  : '3h'                   ,
         'xname'    : 'Hours since beginning',
         'variables': OrderedDict([
-            ('theta', {'levels': list(range(260,275,1)), 'extend':'both'}),
-            ('ua',    {'levels': list(range(-1,9,1))   , 'extend':'both'}),
-            ('va',    {'levels': list(range(-3,3,1))   , 'extend':'both'}),
-            ('qv',    {'levels': list(range(0,10,1))   , 'extend':'max'}),
+            ('theta', {'levels': list(range(270,281,1)), 'extend':'both'}),
+            ('ua',    {'levels': np.arange(0,4.5,0.5)  , 'extend':'both'}),
+            ('va',    {'levels': np.arange(0,5.5,0.5)  , 'extend':'both'}),
+            ('qv',    {'levels': np.arange(0,1.1,0.1)  , 'extend':'max'}),
         ]),
     }), # end 2D
     #######################
@@ -60,47 +62,48 @@ diagnostics = OrderedDict([
         'type'     : 'plotTS'               ,
         'tmin'     : tmin                   ,
         'tmax'     : tmax                   ,        
-        'dtlabel'  : '1h'                   ,
+        'dtlabel'  : '3h'                   ,
         'xname'    : 'Hours since beginning',
         'variables': OrderedDict([
-            ('hfss',  {'ymin':-40., 'ymax':   40.}),
+            ('hfss',  {'ymin':-20., 'ymax':   25.}),
             ('hfls',  {'ymin':-40., 'ymax':   40.}),
-            ('ustar', {'ymin':  0., 'ymax':    1.}),
-            ('ts',    {'ymin':262., 'ymax':  268.}),
+            ('hflsn', {'ymin':-40., 'ymax':   40.}),
+            ('ustar', {'ymin':  0., 'ymax':    0.3}),
+            ('ts',    {'ymin':230., 'ymax':  250.}),
         ]),
     }), # end TS_surface         
     #######################
-    ("hour7-8_basic",{
-        'head'     : 'Basic 7-8h'             ,
+    ("hour5-6_basic",{
+        'head'     : 'Basic 5-6h'             ,
         'type'     : 'plotAvgP'               ,
-        'tmin'     : tmin + timedelta(hours=7),
-        'tmax'     : tmin + timedelta(hours=8),
+        'tmin'     : tmin + timedelta(hours=5),
+        'tmax'     : tmin + timedelta(hours=6),
         'ymin'     : 0.                       ,
         'ymax'     : 400                      ,
         'yname'    : 'altitude (m)'           ,
         'levunits' : 'm'                      ,
-        'rtitle'   : '7-8 hour'               ,        
+        'rtitle'   : '5-6 hour'               ,        
         'variables': OrderedDict([
-            ('ua',    {'xmin':    0. , 'xmax':  12. , 'init':True }),
-            ('va',    {'xmin':   -5. , 'xmax':   5. , 'init':True }),
-            ('theta', {'xmin':  262. , 'xmax': 270. , 'init':True }),
+            ('ua',    {'xmin':    0. , 'xmax':   4. , 'init':True }),
+            ('va',    {'xmin':    0. , 'xmax':   6. , 'init':True }),
+            ('theta', {'xmin':  270. , 'xmax': 280. , 'init':True }),
         ]),
     }), # end hour7-8_basic   
     #######################
-    ("hour8-9_basic",{
-        'head'     : 'Basic 8-9h'             ,
-        'type'     : 'plotAvgP'               ,
-        'tmin'     : tmin + timedelta(hours=8),
-        'tmax'     : tmin + timedelta(hours=9),
-        'ymin'     : 0.                       ,
-        'ymax'     : 400                      ,
-        'yname'    : 'altitude (m)'           ,
-        'levunits' : 'm'                      ,
-        'rtitle'   : '8-9 hour'               ,        
+    ("hour15-16_basic",{
+        'head'     : 'Basic 15-16h'            ,
+        'type'     : 'plotAvgP'                ,
+        'tmin'     : tmin + timedelta(hours=15),
+        'tmax'     : tmin + timedelta(hours=16),
+        'ymin'     : 0.                        ,
+        'ymax'     : 400                       ,
+        'yname'    : 'altitude (m)'            ,
+        'levunits' : 'm'                       ,
+        'rtitle'   : '15-16 hour'                ,        
         'variables': OrderedDict([
-            ('ua',    {'xmin':    0. , 'xmax':  12. , 'init':True }),
-            ('va',    {'xmin':   -5. , 'xmax':   5. , 'init':True }),
-            ('theta', {'xmin':  262. , 'xmax': 270. , 'init':True }),
+            ('ua',    {'xmin':   -4. , 'xmax':   4. , 'init':True }),
+            ('va',    {'xmin':    0. , 'xmax':   6. , 'init':True }),
+            ('theta', {'xmin':  270. , 'xmax': 280. , 'init':True }),
         ]),
     }), # end hour7-8_basic   
     #######################
@@ -113,9 +116,9 @@ diagnostics = OrderedDict([
         'yname'    : 'altitude (km)',
         'levunits' : 'km'           ,
         'variables': OrderedDict([
-            ('ua',    {'xmin':   0., 'xmax':   12.}),
-            ('va',    {'xmin':  -5., 'xmax':    5.}),
-            ('theta', {'xmin': 260., 'xmax':  450.}),
+            ('ua',    {'xmin':   0., 'xmax':   20.}),
+            ('va',    {'xmin':  -1., 'xmax':   20.}),
+            ('theta', {'xmin': 270., 'xmax':  450.}),
             ('qv',    {'xmin':  -1., 'xmax':    5.}),
             ('ql',    {'xmin':  -1., 'xmax':   20.}),
             ('qi',    {'xmin':  -1., 'xmax':   20.}),
@@ -132,8 +135,8 @@ diagnostics = OrderedDict([
         'levunits' : 'm'            ,
         'variables': OrderedDict([
             ('ua',    {'xmin':   0., 'xmax':   12.}),
-            ('va',    {'xmin':  -5., 'xmax':    5.}),
-            ('theta', {'xmin': 295., 'xmax':  320.}),
+            ('va',    {'xmin':   0., 'xmax':    7.}),
+            ('theta', {'xmin': 270., 'xmax':  280.}),
             ('qv',    {'xmin':  -1., 'xmax':    5.}),
             ('ql',    {'xmin':  -1., 'xmax':   20.}),
             ('qi',    {'xmin':  -1., 'xmax':   20.}),

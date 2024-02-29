@@ -7,6 +7,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import os
+
 from collections import OrderedDict
 
 import math
@@ -104,7 +106,7 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
         coef = {k: 1. for k in filein.keys()}
     
     if lev is None:
-        lev = {k: 'zf' for k in filein.keys()}
+        lev = {k: 'zfull' for k in filein.keys()}
     if isinstance(lev,str):
       lev = {k: lev for k in filein.keys()}
 
@@ -189,6 +191,8 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
             level[k] = update_level(level[k], lev[k], levunits)
 
     if init: # Adding initial profiles on plot
+        if not(os.path.exists(filein[kref])):
+            raise ValueError('The following file does not exist: ' + filein[kref])
         with xr.open_dataset(filein[kref]) as ds:
             data['init'] = ds[varname[kref]].data[0,:]*coef[k]
             tmp = get_level(ds, lev[kref], nlev=data['init'].shape[0])
@@ -226,6 +230,8 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
        Do a 2D plot of varname for several MUSC file
     """
 
+    #print('Plot2D', kwargs['title'], filein)
+
     title0 = kwargs['title']
 
     data = OrderedDict()
@@ -239,7 +245,7 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
         coef = {k: coef for k in filein.keys()}
     
     if lev is None:
-        lev = {k: 'zh' for k in filein.keys()}
+        lev = {k: 'zhalf' for k in filein.keys()}
         levunits = {k: 'km' for k in filein.keys()}
     elif isinstance(lev,str):
         lev = {k: lev for k in filein.keys()}
@@ -247,9 +253,9 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
     if levunits is None:
         levunits = {}
         for k in filein.keys():
-            if lev[k] == 'zh':
+            if lev[k] == 'zhalf':
                 levunits[k] = 'km'
-            elif lev[k] in['ph','pf']:
+            elif lev[k] in['phalf','pfull']:
                 levunits[k] = 'hPa'
             else:
                 logger.error('lev={} not coded yet'.format(lev[k]))
@@ -292,26 +298,50 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
                 tmax_rel = cftime.date2num(tmax, tunits)
 
                 time = cftime.date2num(time, tunits)
+                nt, = time.shape
+                #print(nt)
+                dt = time[1]-time[0]
+                timenew = np.zeros(nt+1, np.float32)
+                timenew[1:nt] = (time[0:nt-1]+time[1:nt])/2
+                timenew[0] = time[0] - dt/2.
+                timenew[nt] = time[nt-1] + dt/2.
+                time = timenew
+                #print(time.shape)
+
                     
       
                 try:
                     levax = ds[lev[k]].data
                 except:
-                    if lev[k] == 'zh':
-                        levax = ds.zf.data
-                    if lev[k] == 'ph':
-                        levax = ds.pf.data         
+                    if lev[k] == 'zhalf':
+                        levax = ds.zfull.data
+                    if lev[k] == 'phalf':
+                        levax = ds.pfull.data 
+
+                try:
+                    zorog = np.min(ds['zhalf'].data)
+                except:
+                    zorog = np.min(ds.zfull.data)
+
+                levax -= zorog
 
                 levax = update_level(levax, lev[k], levunits[k])
+                #print(levax.shape)
       
                 if len(levax.shape) == 2:
                     nt,nlev = levax.shape
                     timeax = np.tile(time[:],(nlev,1))
                     X = timeax
                     Y = np.transpose(levax)
+                    Ynew = np.zeros((nlev,nt+1), np.float32)
+                    Ynew[:,1:nt] = (Y[:,0:nt-1]+Y[:,1:nt])/2
+                    Ynew[:,0] = Y[:,0]
+                    Ynew[:,nt] = Y[:,nt-1]
+                    Y = Ynew
                 else:
                     nlev, = levax.shape
                     nt, = time.shape
+                    #print('here',nt)
                     timeax = np.tile(time[:],(nlev,1))
                     levax = np.tile(levax,(nt,1))
                     X = np.array(timeax[:])
@@ -328,6 +358,14 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
                     raise ValueError
 
                 kwargs['title'] = '{0} - {1}'.format(title0,k)
+                #print(kwargs['title'])
+
+                #print(X.shape)
+                #print('X, min, max=', np.min(X), np.max(X))
+                #print(Y.shape)
+                #print('Y, min, max=', np.min(Y), np.max(Y))
+                #print(data.shape)
+                #print('data, min, max=', np.min(data), np.max(data))
 
                 plotutils.plot2D(X,Y,ma.transpose(data),\
                     xmin=tmin_rel, xmax=tmax_rel,\
@@ -379,6 +417,16 @@ def get_time_labels(tmin, tmax, tunits, dtlabel):
                 tlabels.append('{0}'.format(t0.hour))
             t0 = t0 + timedelta(hours=2)
 
+    elif dtlabel == '3h':
+
+        tmin0 = datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
+        t0 = tmin0 + timedelta(hours=0)
+        while t0 <= tmax:
+            if t0 >= tmin: 
+                tt.append(cftime.date2num(t0, tunits))
+                tlabels.append('{0}'.format(t0.hour))
+            t0 = t0 + timedelta(hours=3)
+
     elif dtlabel == '6h':
 
         tmin0 = datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
@@ -418,24 +466,24 @@ def get_time_labels(tmin, tmax, tunits, dtlabel):
 
 def get_level(ds, lev, nlev=None):
 
-    if lev == 'zf':
+    if lev == 'zfull':
         level = ds[lev]
-    elif lev == 'zh':
+    elif lev == 'zhalf':
         try:
             level = ds[lev]
         except:
             try:
-                level = ds['zf']
+                level = ds['zfull']
             except:
                 raise
-    elif lev == 'pf':
+    elif lev == 'pfull':
         level = ds[lev]
-    elif lev == 'ph':
+    elif lev == 'phalf':
         try:
             level = ds[lev]
         except:
             try:
-                level = ds['pf']
+                level = ds['pfull']
             except:
                 raise
     else:
@@ -449,20 +497,28 @@ def get_level(ds, lev, nlev=None):
             nlev_loc, = level.shape
 
         if nlev != nlev_loc:
-            if lev == 'zf':
-                level = ds['zh']
-            elif lev == 'zh':
-                level = ds['zf']
-            elif lev == 'pf':
-                level = ds['ph']
-            elif lev == 'ph':
-                level = ds['pf']
+            if lev == 'zfull':
+                level = ds['zhalf']
+            elif lev == 'zalfh':
+                level = ds['zfull']
+            elif lev == 'pfull':
+                level = ds['phalf']
+            elif lev == 'phalf':
+                level = ds['pfull']
+
+    if lev in ['zfull', 'zhalf']:
+        try:
+            zorog = np.min(ds['zhalf'].data)
+        except:
+            zorog = np.min(ds.zfull.data)
+
+        level -= zorog
 
     return level
 
 def update_level(level, levname, levunits):
 
-    if levname in ['zf','zh']:
+    if levname in ['zfull','zhalf']:
         if levunits == 'm':
             levelloc = level
         elif levunits == 'km':
@@ -470,7 +526,7 @@ def update_level(level, levname, levunits):
         else:
             logger.error('levunits={0} for levname={1} not coded yet'.format(levunits,levname))
             raise NotImplementedError
-    elif levname in ['pf','ph']:
+    elif levname in ['pfull','phalf']:
         if levunits == 'Pa':
             levelloc = level
         elif levunits == 'hPa':

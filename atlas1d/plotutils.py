@@ -7,6 +7,7 @@
 import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
+plt.set_loglevel('error')
 from matplotlib.colors import BoundaryNorm
 from copy import copy
 
@@ -91,6 +92,9 @@ def plot2D(x,y,data,cmap=plt.cm.RdBu,levels=None,firstwhite=False,badcolor='dark
     cmaploc.set_under(cmaplist[0])
     cmaploc.set_bad(badcolor)
 
+    #print(x.shape)
+    #print(y.shape)
+    #print(data.shape)
 
     if levels is None:
         cs = plt.pcolormesh(x,y,data, cmap=cmaploc, shading='auto')

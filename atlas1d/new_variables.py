@@ -447,9 +447,9 @@ def compute(filein, fileout, var):
         logger.debug('Computing ' + var + ' in ' + filein)
 
         if var == 'zcb':
-            ds['zcb'] = f_zcb(ds.zf, ds.rneb)
+            ds['zcb'] = f_zcb(ds.zfull, ds.cl)
         elif var == 'zct':
-            ds['zct'] = f_zct(ds.zf, ds.rneb)
+            ds['zct'] = f_zct(ds.zfull, ds.cl)
         elif var == 'ql':
             add_ql_to_dataset(ds)
         elif var == 'qi':
@@ -460,37 +460,37 @@ def compute(filein, fileout, var):
             add_qsn_to_dataset(ds)
         elif var == 'lwp':
             tmp = get_ql(ds)
-            ds['lwp'] = f_int(ds.zh, tmp)
+            ds['lwp'] = f_int(ds.zhalf, tmp)
             ds['lwp'].attrs['long_name'] = 'Liquid water path'
             ds['lwp'].attrs['units'] = 'kg m-2'
         elif var == 'rwp':
             tmp = get_qr(ds)
-            ds['rwp'] = f_int(ds.zh, tmp)
+            ds['rwp'] = f_int(ds.zhalf, tmp)
             ds['rwp'].attrs['long_name'] = 'Rain water path'
             ds['rwp'].attrs['units'] = 'kg m-2'
         elif var == 'iwp':
             tmp = get_qi(ds)
-            ds['iwp'] = f_int(ds.zh, tmp)
+            ds['iwp'] = f_int(ds.zhalf, tmp)
             ds['iwp'].attrs['long_name'] = 'Ice water path'
             ds['iwp'].attrs['units'] = 'kg m-2'
         elif var == 'theta_0_500':
-            ds[var] = f_avg(ds.zf,ds.theta,0,500)
+            ds[var] = f_avg(ds.zfull,ds.theta,0,500)
             ds[var].attrs['long_name'] = 'Potential temperature averaged over 0-500m'
             ds[var].attrs['units'] = 'K'
         elif var == 'qv_0_500':
-            ds[var] = f_avg(ds.zf,ds.qv,0,500)
+            ds[var] = f_avg(ds.zfull,ds.qv,0,500)
             ds[var].attrs['long_name'] = 'Specific humidity averaged over 0-500m'
             ds[var].attrs['units'] = 'kg kg-1'
         elif var == 'theta_2000_5000':
-            ds[var] = f_avg(ds.zf,ds.theta,2000,5000)
+            ds[var] = f_avg(ds.zfull,ds.theta,2000,5000)
             ds[var].attrs['long_name'] = 'Potential temperature averaged over 2000-5000m'
             ds[var].attrs['units'] = 'K'
         elif var == 'qv_2000_5000':
-            ds[var] = f_avg(ds.zf,ds.qv,2000,5000)
+            ds[var] = f_avg(ds.zfull,ds.qv,2000,5000)
             ds[var].attrs['long_name'] = 'Specific humidity averaged over 2000-5000m'
             ds[var].attrs['units'] = 'kg kg-1'
         elif var == 'max_cf':
-            ds[var] = ds.rneb.max(axis=1)
+            ds[var] = ds.cl.max(axis=1)
             ds[var].attrs['long_name'] = 'Maximum cloud fraction'
             ds[var].attrs['units'] = '-'
         elif var == 'Qr_int':

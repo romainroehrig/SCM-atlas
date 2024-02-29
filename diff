@@ -1,0 +1,634 @@
+diff --git a/atlas1d/Diagnostic.py b/atlas1d/Diagnostic.py
+index 1216b9b..77ad0e5 100644
+--- a/atlas1d/Diagnostic.py
++++ b/atlas1d/Diagnostic.py
+@@ -146,7 +146,7 @@ class Diagnostic:
+ 
+             if lcompute:
+                 plotdico = {
+-                    'lev'       : 'zh'                                                      ,
++                    'lev'       : 'zhalf'                                                      ,
+                     'minmax'    : True                                                      ,
+                     'units'     : variables_info[self.variable]['units']                    ,
+                     'title'     : '{0} ({1})'.format(variables_info[self.variable]['name'],
+@@ -220,7 +220,7 @@ class Diagnostic:
+                     'title'  : '{0} ({1}) - {2}'.format(variables_info[self.variable]['name'],
+                                                         variables_info[self.variable]['units'],
+                                                         self.plot_details['rtitle']),
+-                    'lev'    : 'zf'                                                 ,
++                    'lev'    : 'zfull'                                              ,
+                     'init'   : False                                                ,
+                     'lbias'  : False                                                ,
+                     'units'  : variables_info[self.variable]['units']               ,
+@@ -246,7 +246,7 @@ class Diagnostic:
+                 plotdico = {
+                     'title'  : '{0} ({1}) - First timestep'.format(variables_info[self.variable]['name'],
+                                                                     variables_info[self.variable]['units']),
+-                    'lev'    : 'zf'                                                                        ,
++                    'lev'    : 'zfull'                                                                     ,
+                     'init'   : False                                                                       ,
+                     'lbias'  : False                                                                       ,
+                     'units'  : variables_info[self.variable]['units']                                      ,
+diff --git a/atlas1d/new_variables.py b/atlas1d/new_variables.py
+index e6cb81f..8407473 100644
+--- a/atlas1d/new_variables.py
++++ b/atlas1d/new_variables.py
+@@ -447,9 +447,9 @@ def compute(filein, fileout, var):
+         logger.debug('Computing ' + var + ' in ' + filein)
+ 
+         if var == 'zcb':
+-            ds['zcb'] = f_zcb(ds.zf, ds.rneb)
++            ds['zcb'] = f_zcb(ds.zfull, ds.cl)
+         elif var == 'zct':
+-            ds['zct'] = f_zct(ds.zf, ds.rneb)
++            ds['zct'] = f_zct(ds.zfull, ds.cl)
+         elif var == 'ql':
+             add_ql_to_dataset(ds)
+         elif var == 'qi':
+@@ -460,37 +460,37 @@ def compute(filein, fileout, var):
+             add_qsn_to_dataset(ds)
+         elif var == 'lwp':
+             tmp = get_ql(ds)
+-            ds['lwp'] = f_int(ds.zh, tmp)
++            ds['lwp'] = f_int(ds.zhalf, tmp)
+             ds['lwp'].attrs['long_name'] = 'Liquid water path'
+             ds['lwp'].attrs['units'] = 'kg m-2'
+         elif var == 'rwp':
+             tmp = get_qr(ds)
+-            ds['rwp'] = f_int(ds.zh, tmp)
++            ds['rwp'] = f_int(ds.zhalf, tmp)
+             ds['rwp'].attrs['long_name'] = 'Rain water path'
+             ds['rwp'].attrs['units'] = 'kg m-2'
+         elif var == 'iwp':
+             tmp = get_qi(ds)
+-            ds['iwp'] = f_int(ds.zh, tmp)
++            ds['iwp'] = f_int(ds.zhalf, tmp)
+             ds['iwp'].attrs['long_name'] = 'Ice water path'
+             ds['iwp'].attrs['units'] = 'kg m-2'
+         elif var == 'theta_0_500':
+-            ds[var] = f_avg(ds.zf,ds.theta,0,500)
++            ds[var] = f_avg(ds.zfull,ds.theta,0,500)
+             ds[var].attrs['long_name'] = 'Potential temperature averaged over 0-500m'
+             ds[var].attrs['units'] = 'K'
+         elif var == 'qv_0_500':
+-            ds[var] = f_avg(ds.zf,ds.qv,0,500)
++            ds[var] = f_avg(ds.zfull,ds.qv,0,500)
+             ds[var].attrs['long_name'] = 'Specific humidity averaged over 0-500m'
+             ds[var].attrs['units'] = 'kg kg-1'
+         elif var == 'theta_2000_5000':
+-            ds[var] = f_avg(ds.zf,ds.theta,2000,5000)
++            ds[var] = f_avg(ds.zfull,ds.theta,2000,5000)
+             ds[var].attrs['long_name'] = 'Potential temperature averaged over 2000-5000m'
+             ds[var].attrs['units'] = 'K'
+         elif var == 'qv_2000_5000':
+-            ds[var] = f_avg(ds.zf,ds.qv,2000,5000)
++            ds[var] = f_avg(ds.zfull,ds.qv,2000,5000)
+             ds[var].attrs['long_name'] = 'Specific humidity averaged over 2000-5000m'
+             ds[var].attrs['units'] = 'kg kg-1'
+         elif var == 'max_cf':
+-            ds[var] = ds.rneb.max(axis=1)
++            ds[var] = ds.cl.max(axis=1)
+             ds[var].attrs['long_name'] = 'Maximum cloud fraction'
+             ds[var].attrs['units'] = '-'
+         elif var == 'Qr_int':
+diff --git a/atlas1d/plotMUSC.py b/atlas1d/plotMUSC.py
+index 7ba7caf..a8b484c 100644
+--- a/atlas1d/plotMUSC.py
++++ b/atlas1d/plotMUSC.py
+@@ -7,6 +7,8 @@
+ import logging
+ logger = logging.getLogger(__name__)
+ 
++import os
++
+ from collections import OrderedDict
+ 
+ import math
+@@ -104,7 +106,7 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
+         coef = {k: 1. for k in filein.keys()}
+     
+     if lev is None:
+-        lev = {k: 'zf' for k in filein.keys()}
++        lev = {k: 'zfull' for k in filein.keys()}
+     if isinstance(lev,str):
+       lev = {k: lev for k in filein.keys()}
+ 
+@@ -189,6 +191,8 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
+             level[k] = update_level(level[k], lev[k], levunits)
+ 
+     if init: # Adding initial profiles on plot
++        if not(os.path.exists(filein[kref])):
++            raise ValueError('The following file does not exist: ' + filein[kref])
+         with xr.open_dataset(filein[kref]) as ds:
+             data['init'] = ds[varname[kref]].data[0,:]*coef[k]
+             tmp = get_level(ds, lev[kref], nlev=data['init'].shape[0])
+@@ -226,6 +230,8 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
+        Do a 2D plot of varname for several MUSC file
+     """
+ 
++    #print('Plot2D', kwargs['title'], filein)
++
+     title0 = kwargs['title']
+ 
+     data = OrderedDict()
+@@ -239,7 +245,7 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
+         coef = {k: coef for k in filein.keys()}
+     
+     if lev is None:
+-        lev = {k: 'zh' for k in filein.keys()}
++        lev = {k: 'zhalf' for k in filein.keys()}
+         levunits = {k: 'km' for k in filein.keys()}
+     elif isinstance(lev,str):
+         lev = {k: lev for k in filein.keys()}
+@@ -247,9 +253,9 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
+     if levunits is None:
+         levunits = {}
+         for k in filein.keys():
+-            if lev[k] == 'zh':
++            if lev[k] == 'zhalf':
+                 levunits[k] = 'km'
+-            elif lev[k] in['ph','pf']:
++            elif lev[k] in['phalf','pfull']:
+                 levunits[k] = 'hPa'
+             else:
+                 logger.error('lev={} not coded yet'.format(lev[k]))
+@@ -292,26 +298,50 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
+                 tmax_rel = cftime.date2num(tmax, tunits)
+ 
+                 time = cftime.date2num(time, tunits)
++                nt, = time.shape
++                #print(nt)
++                dt = time[1]-time[0]
++                timenew = np.zeros(nt+1, np.float32)
++                timenew[1:nt] = (time[0:nt-1]+time[1:nt])/2
++                timenew[0] = time[0] - dt/2.
++                timenew[nt] = time[nt-1] + dt/2.
++                time = timenew
++                #print(time.shape)
++
+                     
+       
+                 try:
+                     levax = ds[lev[k]].data
+                 except:
+-                    if lev[k] == 'zh':
+-                        levax = ds.zf.data
+-                    if lev[k] == 'ph':
+-                        levax = ds.pf.data         
++                    if lev[k] == 'zhalf':
++                        levax = ds.zfull.data
++                    if lev[k] == 'phalf':
++                        levax = ds.pfull.data 
++
++                try:
++                    zorog = np.min(ds['zhalf'].data)
++                except:
++                    zorog = np.min(ds.zfull.data)
++
++                levax -= zorog
+ 
+                 levax = update_level(levax, lev[k], levunits[k])
++                #print(levax.shape)
+       
+                 if len(levax.shape) == 2:
+                     nt,nlev = levax.shape
+                     timeax = np.tile(time[:],(nlev,1))
+                     X = timeax
+                     Y = np.transpose(levax)
++                    Ynew = np.zeros((nlev,nt+1), np.float32)
++                    Ynew[:,1:nt] = (Y[:,0:nt-1]+Y[:,1:nt])/2
++                    Ynew[:,0] = Y[:,0]
++                    Ynew[:,nt] = Y[:,nt-1]
++                    Y = Ynew
+                 else:
+                     nlev, = levax.shape
+                     nt, = time.shape
++                    #print('here',nt)
+                     timeax = np.tile(time[:],(nlev,1))
+                     levax = np.tile(levax,(nt,1))
+                     X = np.array(timeax[:])
+@@ -328,6 +358,14 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
+                     raise ValueError
+ 
+                 kwargs['title'] = '{0} - {1}'.format(title0,k)
++                #print(kwargs['title'])
++
++                #print(X.shape)
++                #print('X, min, max=', np.min(X), np.max(X))
++                #print(Y.shape)
++                #print('Y, min, max=', np.min(Y), np.max(Y))
++                #print(data.shape)
++                #print('data, min, max=', np.min(data), np.max(data))
+ 
+                 plotutils.plot2D(X,Y,ma.transpose(data),\
+                     xmin=tmin_rel, xmax=tmax_rel,\
+@@ -379,6 +417,16 @@ def get_time_labels(tmin, tmax, tunits, dtlabel):
+                 tlabels.append('{0}'.format(t0.hour))
+             t0 = t0 + timedelta(hours=2)
+ 
++    elif dtlabel == '3h':
++
++        tmin0 = datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
++        t0 = tmin0 + timedelta(hours=0)
++        while t0 <= tmax:
++            if t0 >= tmin: 
++                tt.append(cftime.date2num(t0, tunits))
++                tlabels.append('{0}'.format(t0.hour))
++            t0 = t0 + timedelta(hours=3)
++
+     elif dtlabel == '6h':
+ 
+         tmin0 = datetime(tmin.year,tmin.month,tmin.day,tmin.hour)
+@@ -418,24 +466,24 @@ def get_time_labels(tmin, tmax, tunits, dtlabel):
+ 
+ def get_level(ds, lev, nlev=None):
+ 
+-    if lev == 'zf':
++    if lev == 'zfull':
+         level = ds[lev]
+-    elif lev == 'zh':
++    elif lev == 'zhalf':
+         try:
+             level = ds[lev]
+         except:
+             try:
+-                level = ds['zf']
++                level = ds['zfull']
+             except:
+                 raise
+-    elif lev == 'pf':
++    elif lev == 'pfull':
+         level = ds[lev]
+-    elif lev == 'ph':
++    elif lev == 'phalf':
+         try:
+             level = ds[lev]
+         except:
+             try:
+-                level = ds['pf']
++                level = ds['pfull']
+             except:
+                 raise
+     else:
+@@ -449,20 +497,28 @@ def get_level(ds, lev, nlev=None):
+             nlev_loc, = level.shape
+ 
+         if nlev != nlev_loc:
+-            if lev == 'zf':
+-                level = ds['zh']
+-            elif lev == 'zh':
+-                level = ds['zf']
+-            elif lev == 'pf':
+-                level = ds['ph']
+-            elif lev == 'ph':
+-                level = ds['pf']
++            if lev == 'zfull':
++                level = ds['zhalf']
++            elif lev == 'zalfh':
++                level = ds['zfull']
++            elif lev == 'pfull':
++                level = ds['phalf']
++            elif lev == 'phalf':
++                level = ds['pfull']
++
++    if lev in ['zfull', 'zhalf']:
++        try:
++            zorog = np.min(ds['zhalf'].data)
++        except:
++            zorog = np.min(ds.zfull.data)
++
++        level -= zorog
+ 
+     return level
+ 
+ def update_level(level, levname, levunits):
+ 
+-    if levname in ['zf','zh']:
++    if levname in ['zfull','zhalf']:
+         if levunits == 'm':
+             levelloc = level
+         elif levunits == 'km':
+@@ -470,7 +526,7 @@ def update_level(level, levname, levunits):
+         else:
+             logger.error('levunits={0} for levname={1} not coded yet'.format(levunits,levname))
+             raise NotImplementedError
+-    elif levname in ['pf','ph']:
++    elif levname in ['pfull','phalf']:
+         if levunits == 'Pa':
+             levelloc = level
+         elif levunits == 'hPa':
+diff --git a/atlas1d/plotutils.py b/atlas1d/plotutils.py
+index 2683563..c25e419 100644
+--- a/atlas1d/plotutils.py
++++ b/atlas1d/plotutils.py
+@@ -7,6 +7,7 @@
+ import numpy as np
+ import numpy.ma as ma
+ import matplotlib.pyplot as plt
++plt.set_loglevel('error')
+ from matplotlib.colors import BoundaryNorm
+ from copy import copy
+ 
+@@ -91,6 +92,9 @@ def plot2D(x,y,data,cmap=plt.cm.RdBu,levels=None,firstwhite=False,badcolor='dark
+     cmaploc.set_under(cmaplist[0])
+     cmaploc.set_bad(badcolor)
+ 
++    #print(x.shape)
++    #print(y.shape)
++    #print(data.shape)
+ 
+     if levels is None:
+         cs = plt.pcolormesh(x,y,data, cmap=cmaploc, shading='auto')
+diff --git a/default_atlas/atlas_ARMCU.py b/default_atlas/atlas_ARMCU.py
+index cf3f353..6ffc596 100644
+--- a/default_atlas/atlas_ARMCU.py
++++ b/default_atlas/atlas_ARMCU.py
+@@ -21,7 +21,7 @@ dir_references = os.getenv('SCM_REFERENCES')
+ ####################################
+ 
+ tmp = OrderedDict([
+-       ('LES_5min',{'ncfile': os.path.join(dir_references, 'ARMCU/ARMCU_LES_MESONH_RR.nc'),  'line': 'k'}),
++       ('LES_5min',{'ncfile': os.path.join(dir_references, 'ARMCU/ARMCU_REF_MESONH_RR.nc'),  'line': 'k'}),
+        ('BLM_cor', {'ncfile': os.path.join(dir_references, 'ARMCU_BOMEX_BLM/ARMCU_cor.nc'),  'line': 'k.'}),
+        ('BLM_cld', {'ncfile': os.path.join(dir_references, 'ARMCU_BOMEX_BLM/ARMCU_cld.nc'),  'line': 'b.'}),
+        ('BLM_csam',{'ncfile': os.path.join(dir_references, 'ARMCU_BOMEX_BLM/ARMCU_csam.nc'), 'line': 'g.'}),
+@@ -51,8 +51,8 @@ diagnostics = OrderedDict([
+         'dtlabel'  : '1h'                ,
+         'xname'    : '21 June 1997 (UTC)',
+         'variables': OrderedDict([
+-            ('u', {'levels': list(range(0,12,1))           , 'extend':'both'}),
+-            ('v', {'levels': [i*0.5 for i in range(-6,7,1)], 'extend':'both'}),
++            ('ua', {'levels': list(range(0,12,1))           , 'extend':'both'}),
++            ('va', {'levels': [i*0.5 for i in range(-6,7,1)], 'extend':'both'}),
+         ]),
+     }), # end 2D_dyn
+     #######################
+@@ -71,7 +71,7 @@ diagnostics = OrderedDict([
+             #('theta', {'levels': list(range(300,321,1))   , 'extend':'both'                 }),
+             ('thetal', {'levels': list(range(300,321,1))  , 'extend':'both'                 }),
+             #('qv'   , {'levels': [0] + list(range(4,18,1)), 'extend':'max', 'cmap': cm.RdBu }),
+-            ('qt'   , {'levels': [0] + list(range(4,18,1)), 'extend':'max', 'cmap': cm.RdBu }),
++            ('qt'   ,  {'levels': [0] + list(range(4,18,1)), 'extend':'max', 'cmap': cm.RdBu }),
+         ]),
+     }), # end 2D_thermo
+     #######################
+@@ -83,11 +83,11 @@ diagnostics = OrderedDict([
+         'dtlabel'  : '1h'                ,
+         'xname'    : '21 June 1997 (UTC)',
+         'variables': OrderedDict([
+-            ('shf',   {'ymin':-40., 'ymax':  160.}),
+-            ('lhf',   {'ymin':  0., 'ymax':  600.}),
++            ('hfss',  {'ymin':-40., 'ymax':  160.}),
++            ('hfls',  {'ymin':  0., 'ymax':  600.}),
+             ('ustar', {'ymin':  0., 'ymax':    1.}),
+-            ('tsurf', {'ymin':280., 'ymax':  320.}),
+-            ('rain',  {'ymin':  0., 'ymax':    2.}),
++            ('ts',    {'ymin':280., 'ymax':  320.}),
++            ('pr',    {'ymin':  0., 'ymax':    2.}),
+         ]),
+     }), # end TS_surface         
+     #######################
+@@ -103,7 +103,7 @@ diagnostics = OrderedDict([
+         'dtlabel'  : '1h'                ,
+         'xname'    : '21 June 1997 (UTC)',
+         'variables': OrderedDict([
+-            ('rneb', {'levels': [0,1] + list(range(4,21,2))   , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
++            ('cl',   {'levels': [0,1] + list(range(4,21,2))   , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+             ('ql'  , {'levels': list(range(0,41,4))           , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+             ('qr'  , {'levels': [i*0.4 for i in range(0,11,1)], 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+         ]),
+@@ -117,7 +117,7 @@ diagnostics = OrderedDict([
+         'dtlabel'  : '1h'                ,
+         'xname'    : '21 June 1997 (UTC)',
+         'variables': OrderedDict([
+-            ('cc',  {'ymin':  0., 'ymax':  100.}),
++            ('clt', {'ymin':  0., 'ymax':  100.}),
+             ('zcb', {'ymin':  0., 'ymax': 2000.}),
+             ('zct', {'ymin':  0., 'ymax': 4000.}),
+             ('lwp', {'ymin':  0., 'ymax':   60.}),            
+@@ -136,15 +136,15 @@ diagnostics = OrderedDict([
+         'levunits' : 'km'                     ,
+         'rtitle'   : '7-8 hour'               ,        
+         'variables': OrderedDict([
+-            ('u',        {'xmin':    0.  , 'xmax':  12. , 'init':True }),
+-            ('v',        {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
+-            #('theta',    {'xmin':  300.  , 'xmax': 325. , 'init':True }),
+-            ('thetal',   {'xmin':  300.  , 'xmax': 325. , 'init':True }),
+-            #('qv',       {'xmin':    0.  , 'xmax':  18. , 'init':True }),
+-            ('qt',       {'xmin':    0.  , 'xmax':  18. , 'init':True }),
+-            ('rneb',     {'xmin':    0.  , 'xmax':  40.               }),
+-            ('ql',       {'xmin':    0.  , 'xmax':  60.               }),
+-            ('qr',       {'xmin':    0.  , 'xmax':  10.               }),
++            ('ua',     {'xmin':    0.  , 'xmax':  12. , 'init':True }),
++            ('va',     {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
++            #('theta',  {'xmin':  300.  , 'xmax': 325. , 'init':True }),
++            ('thetal', {'xmin':  300.  , 'xmax': 325. , 'init':True }),
++            #('qv',     {'xmin':    0.  , 'xmax':  18. , 'init':True }),
++            ('qt',     {'xmin':    0.  , 'xmax':  18. , 'init':True }),
++            ('cl',     {'xmin':    0.  , 'xmax':  40.               }),
++            ('ql',     {'xmin':    0.  , 'xmax':  60.               }),
++            ('qr',     {'xmin':    0.  , 'xmax':  10.               }),
+         ]),
+     }), # end hour7-8_basic   
+     #######################
+@@ -159,15 +159,15 @@ diagnostics = OrderedDict([
+         'levunits' : 'km'                      ,
+         'rtitle'   : '9-10 hour'               ,        
+         'variables': OrderedDict([
+-            ('u',        {'xmin':    0.  , 'xmax':  12. , 'init':True }),
+-            ('v',        {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
+-            #('theta',    {'xmin':  300.  , 'xmax': 325. , 'init':True }),
+-            ('thetal',   {'xmin':  300.  , 'xmax': 325. , 'init':True }),
+-            #('qv',       {'xmin':    0.  , 'xmax':  18. , 'init':True }),
+-            ('qt',       {'xmin':    0.  , 'xmax':  18. , 'init':True }),
+-            ('rneb',     {'xmin':    0.  , 'xmax':  40.               }),
+-            ('ql',       {'xmin':    0.  , 'xmax':  60.               }),
+-            ('qr',       {'xmin':    0.  , 'xmax':  10.               }),
++            ('ua',     {'xmin':    0.  , 'xmax':  12. , 'init':True }),
++            ('va',     {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
++            #('theta',  {'xmin':  300.  , 'xmax': 325. , 'init':True }),
++            ('thetal', {'xmin':  300.  , 'xmax': 325. , 'init':True }),
++            #('qv',     {'xmin':    0.  , 'xmax':  18. , 'init':True }),
++            ('qt',     {'xmin':    0.  , 'xmax':  18. , 'init':True }),
++            ('cl',     {'xmin':    0.  , 'xmax':  40.               }),
++            ('ql',     {'xmin':    0.  , 'xmax':  60.               }),
++            ('qr',     {'xmin':    0.  , 'xmax':  10.               }),
+         ]),
+     }), # end hour9-10_basic    
+     #######################
+@@ -243,8 +243,8 @@ diagnostics = OrderedDict([
+         'yname'    : 'altitude (km)',
+         'levunits' : 'km'           ,
+         'variables': OrderedDict([
+-            ('u',     {'xmin':   8., 'xmax':   12.}),
+-            ('v',     {'xmin':  -1., 'xmax':    1.}),
++            ('ua',    {'xmin':   8., 'xmax':   12.}),
++            ('va',    {'xmin':  -1., 'xmax':    1.}),
+             ('theta', {'xmin': 295., 'xmax':  450.}),
+             ('thetal',{'xmin': 295., 'xmax':  450.}),
+             ('qv',    {'xmin':  -1., 'xmax':   18.}),
+@@ -263,8 +263,8 @@ diagnostics = OrderedDict([
+         'yname'    : 'altitude (km)',
+         'levunits' : 'km'           ,
+         'variables': OrderedDict([
+-            ('u',     {'xmin':   8., 'xmax':   12.}),
+-            ('v',     {'xmin':  -1., 'xmax':    1.}),
++            ('ua',    {'xmin':   8., 'xmax':   12.}),
++            ('va',    {'xmin':  -1., 'xmax':    1.}),
+             ('theta', {'xmin': 295., 'xmax':  325.}),
+             ('thetal',{'xmin': 295., 'xmax':  325.}),
+             ('qv',    {'xmin':  -1., 'xmax':   18.}),
+diff --git a/default_atlas/atlas_GABLS1.py b/default_atlas/atlas_GABLS1.py
+index a48ae3a..c6c00bc 100644
+--- a/default_atlas/atlas_GABLS1.py
++++ b/default_atlas/atlas_GABLS1.py
+@@ -49,8 +49,9 @@ diagnostics = OrderedDict([
+         'xname'    : 'Hours since beginning',
+         'variables': OrderedDict([
+             ('theta', {'levels': list(range(260,275,1)), 'extend':'both'}),
+-            ('u',     {'levels': list(range(-1,9,1))   , 'extend':'both'}),
+-            ('v',     {'levels': list(range(-3,3,1))   , 'extend':'both'}),
++            ('ua',    {'levels': list(range(-1,9,1))   , 'extend':'both'}),
++            ('va',    {'levels': list(range(-3,3,1))   , 'extend':'both'}),
++            ('qv',    {'levels': list(range(0,10,1))   , 'extend':'max'}),
+         ]),
+     }), # end 2D
+     #######################
+@@ -62,9 +63,10 @@ diagnostics = OrderedDict([
+         'dtlabel'  : '1h'                   ,
+         'xname'    : 'Hours since beginning',
+         'variables': OrderedDict([
+-            ('shf',   {'ymin':-40., 'ymax':  400.}),
++            ('hfss',  {'ymin':-40., 'ymax':   40.}),
++            ('hfls',  {'ymin':-40., 'ymax':   40.}),
+             ('ustar', {'ymin':  0., 'ymax':    1.}),
+-            ('tsurf', {'ymin':260., 'ymax':  270.}),
++            ('ts',    {'ymin':262., 'ymax':  268.}),
+         ]),
+     }), # end TS_surface         
+     #######################
+@@ -79,9 +81,9 @@ diagnostics = OrderedDict([
+         'levunits' : 'm'                      ,
+         'rtitle'   : '7-8 hour'               ,        
+         'variables': OrderedDict([
+-            ('u',        {'xmin':   -1. , 'xmax':  10. , 'init':True }),
+-            ('v',        {'xmin':   -3. , 'xmax':   3. , 'init':True }),
+-            ('theta',    {'xmin':  260. , 'xmax': 275. , 'init':True }),
++            ('ua',    {'xmin':    0. , 'xmax':  12. , 'init':True }),
++            ('va',    {'xmin':   -5. , 'xmax':   5. , 'init':True }),
++            ('theta', {'xmin':  262. , 'xmax': 270. , 'init':True }),
+         ]),
+     }), # end hour7-8_basic   
+     #######################
+@@ -96,9 +98,9 @@ diagnostics = OrderedDict([
+         'levunits' : 'm'                      ,
+         'rtitle'   : '8-9 hour'               ,        
+         'variables': OrderedDict([
+-            ('u',        {'xmin':   -1. , 'xmax':  10. , 'init':True }),
+-            ('v',        {'xmin':   -3. , 'xmax':   3. , 'init':True }),
+-            ('theta',    {'xmin':  260. , 'xmax': 275. , 'init':True }),
++            ('ua',    {'xmin':    0. , 'xmax':  12. , 'init':True }),
++            ('va',    {'xmin':   -5. , 'xmax':   5. , 'init':True }),
++            ('theta', {'xmin':  262. , 'xmax': 270. , 'init':True }),
+         ]),
+     }), # end hour7-8_basic   
+     #######################
+@@ -111,8 +113,8 @@ diagnostics = OrderedDict([
+         'yname'    : 'altitude (km)',
+         'levunits' : 'km'           ,
+         'variables': OrderedDict([
+-            ('u',     {'xmin':  -1., 'xmax':   17.}),
+-            ('v',     {'xmin':  -5., 'xmax':    5.}),
++            ('ua',    {'xmin':   0., 'xmax':   12.}),
++            ('va',    {'xmin':  -5., 'xmax':    5.}),
+             ('theta', {'xmin': 260., 'xmax':  450.}),
+             ('qv',    {'xmin':  -1., 'xmax':    5.}),
+             ('ql',    {'xmin':  -1., 'xmax':   20.}),
+@@ -129,8 +131,8 @@ diagnostics = OrderedDict([
+         'yname'    : 'altitude (m)' ,
+         'levunits' : 'm'            ,
+         'variables': OrderedDict([
+-            ('u',     {'xmin':  -1., 'xmax':   17.}),
+-            ('v',     {'xmin':  -5., 'xmax':    5.}),
++            ('ua',    {'xmin':   0., 'xmax':   12.}),
++            ('va',    {'xmin':  -5., 'xmax':    5.}),
+             ('theta', {'xmin': 295., 'xmax':  320.}),
+             ('qv',    {'xmin':  -1., 'xmax':    5.}),
+             ('ql',    {'xmin':  -1., 'xmax':   20.}),
+diff --git a/default_atlas/variables_info.py b/default_atlas/variables_info.py
+index 5c69796..c56e74f 100644
+--- a/default_atlas/variables_info.py
++++ b/default_atlas/variables_info.py
+@@ -2,38 +2,39 @@ var2compute = ['zcb','zct','ql','qr','lwp','rwp','qt','thetal']
+ 
+ variables_info = {
+         # 2D Variables
+-        'u':        {'name': 'Zonal wind',                        'units': 'm s$^{-1}$',           'coef': 1.},
+-        'v':        {'name': 'Meridional wind',                   'units': 'm s$^{-1}$',           'coef': 1.},
+-        'theta':    {'name': 'Potential temperature',             'units': 'K',                    'coef': 1.},
+-        'thetal':   {'name': 'Liquid-Water Potential Temperature','units': 'K',            'coef': 1.},
+-        'temp':     {'name': 'Temperture',                        'units': 'K',                    'coef': 1.},
+-        'qv':       {'name': 'Specific humidity',                 'units': 'g kg$^{-1}$',          'coef': 1000.},
+-        'hur':      {'name': 'Relative humidity',                 'units': '%',                    'coef': 100.},
+-        'rneb':     {'name': 'Cloud fraction',                    'units': '%',                    'coef': 100.},
+-        'ql':       {'name': 'Liquid Water Content',              'units': 'mg kg$^{-1}$',         'coef': 1.e6},
+-        'qi':       {'name': 'Ice Water Content',                 'units': 'mg kg$^{-1}$',         'coef': 1.e6},
+-        'qr':       {'name': 'Rain Water Content',                'units': 'mg kg$^{-1}$',         'coef': 1.e6},
+-        'qsn':      {'name': 'Snow Water Content',                'units': 'mg kg$^{-1}$',         'coef': 1.e6},
+-        'qt':       {'name': 'Total Water Content',               'units': 'g kg$^{-1}$',        'coef': 1000.},
+-        'tke':      {'name': 'Turbulent kinetic energy',          'units': 'm$^2$ s$^{-2}$',       'coef': 1.},
+-        'w_up':     {'name': 'Updraft vertical velocity',         'units': 'm s$^{-1}$',           'coef': 1.},
+-        'alpha_up': {'name': 'Updraft area fraction',             'units': '%',                    'coef': 100.},
+-        'Mf':       {'name': 'Updraft mass flux',                 'units': 'kg m$^{-2}$ s$^{-1}$', 'coef': 1.},
+-        'dTv_up':   {'name': 'Updraft dTv',                       'units': 'K',                    'coef': 1.},
+-        'B_up':     {'name': 'Updraft buoyancy',                  'units': 'm s$^{-2}$',           'coef': 1.},
+-        'eps_u':    {'name': 'Updraft entrainment',               'units': 'km$^{-1}$',            'coef': 1000.},
+-        'det_u':    {'name': 'Updraft detrainment',               'units': 'km$^{-1}$',            'coef': 1000.},
++        'ua':       {'name': 'Zonal wind',                         'units': 'm s$^{-1}$',           'coef': 1.},
++        'va':       {'name': 'Meridional wind',                    'units': 'm s$^{-1}$',           'coef': 1.},
++        'theta':    {'name': 'Potential temperature',              'units': 'K',                    'coef': 1.},
++        'thetal':   {'name': 'Liquid-Water Potential Temperature', 'units': 'K',            'coef': 1.},
++        'ta':       {'name': 'Temperture',                         'units': 'K',                    'coef': 1.},
++        'qv':       {'name': 'Specific humidity',                  'units': 'g kg$^{-1}$',          'coef': 1000.},
++        'hur':      {'name': 'Relative humidity',                  'units': '%',                    'coef': 100.},
++        'cl':       {'name': 'Cloud fraction',                     'units': '%',                    'coef': 100.},
++        'ql':       {'name': 'Liquid Water Content',               'units': 'mg kg$^{-1}$',         'coef': 1.e6},
++        'qi':       {'name': 'Ice Water Content',                  'units': 'mg kg$^{-1}$',         'coef': 1.e6},
++        'qr':       {'name': 'Rain Water Content',                 'units': 'mg kg$^{-1}$',         'coef': 1.e6},
++        'qsn':      {'name': 'Snow Water Content',                 'units': 'mg kg$^{-1}$',         'coef': 1.e6},
++        'qt':       {'name': 'Total Water Content',                'units': 'g kg$^{-1}$',        'coef': 1000.},
++        'tke':      {'name': 'Turbulent kinetic energy',           'units': 'm$^2$ s$^{-2}$',       'coef': 1.},
++        'w_up':     {'name': 'Updraft vertical velocity',          'units': 'm s$^{-1}$',           'coef': 1.},
++        'alpha_up': {'name': 'Updraft area fraction',              'units': '%',                    'coef': 100.},
++        'Mf':       {'name': 'Updraft mass flux',                  'units': 'kg m$^{-2}$ s$^{-1}$', 'coef': 1.},
++        'dTv_up':   {'name': 'Updraft dTv',                        'units': 'K',                    'coef': 1.},
++        'B_up':     {'name': 'Updraft buoyancy',                   'units': 'm s$^{-2}$',           'coef': 1.},
++        'eps_u':    {'name': 'Updraft entrainment',                'units': 'km$^{-1}$',            'coef': 1000.},
++        'det_u':    {'name': 'Updraft detrainment',                'units': 'km$^{-1}$',            'coef': 1000.},
+         # 1D Variables
+-        'shf':      {'name': 'Sensible heat flux',        'units': 'W m$^{-2}$',           'coef': 1.},
+-        'lhf':      {'name': 'Latent heat flux',          'units': 'W m$^{-2}$',           'coef': 1.},
+-        'ustar':    {'name': 'Surface friction velocity', 'units': 'm s$^{-1}$',           'coef': 1.},
+-        'tsurf':    {'name': 'Surface temperature',       'units': 'K',                    'coef': 1.},
+-        'rain':     {'name': 'Surface precipitation',     'units': 'mm day$^{-1}$',        'coef': 86400.},
+-        'cc':       {'name': 'Total cloud fraction',      'units': '%',                    'coef': 100.},
+-        'zcb':      {'name': 'Cloud base height',         'units': 'm',                    'coef': 1.},
+-        'zct':      {'name': 'Cloud top height',          'units': 'm',                    'coef': 1.},
+-        'prw':      {'name': 'Precipitable water',        'units': 'kg m$^{{-2}}$',        'coef': 1.},
+-        'lwp':      {'name': 'Liquid water path',         'units': 'g m$^{{-2}}$',         'coef': 1000.},
+-        'iwp':      {'name': 'Ice water path',            'units': 'g m$^{{-2}}$',         'coef': 1000.},
+-        'rwp':      {'name': 'Rain path',                 'units': 'g m$^{{-2}}$',         'coef': 1000.},
++        'hfss':     {'name': 'Sensible heat flux',                 'units': 'W m$^{-2}$',           'coef': 1.},
++        'hfls':     {'name': 'Latent heat flux',                   'units': 'W m$^{-2}$',           'coef': 1.},
++        'hflsn':    {'name': 'Latent heat flux over snow',         'units': 'W m$^{-2}$',           'coef': 1.},
++        'ustar':    {'name': 'Surface friction velocity',          'units': 'm s$^{-1}$',           'coef': 1.},
++        'ts':       {'name': 'Surface temperature',                'units': 'K',                    'coef': 1.},
++        'pr':       {'name': 'Surface precipitation',              'units': 'mm day$^{-1}$',        'coef': 86400.},
++        'clt':      {'name': 'Total cloud fraction',               'units': '%',                    'coef': 100.},
++        'zcb':      {'name': 'Cloud base height',                  'units': 'm',                    'coef': 1.},
++        'zct':      {'name': 'Cloud top height',                   'units': 'm',                    'coef': 1.},
++        'prw':      {'name': 'Precipitable water',                 'units': 'kg m$^{{-2}}$',        'coef': 1.},
++        'lwp':      {'name': 'Liquid water path',                  'units': 'g m$^{{-2}}$',         'coef': 1000.},
++        'iwp':      {'name': 'Ice water path',                     'units': 'g m$^{{-2}}$',         'coef': 1000.},
++        'rwp':      {'name': 'Rain path',                          'units': 'g m$^{{-2}}$',         'coef': 1000.},
+ }

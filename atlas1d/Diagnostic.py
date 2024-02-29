@@ -146,7 +146,7 @@ class Diagnostic:
 
             if lcompute:
                 plotdico = {
-                    'lev'       : 'zh'                                                      ,
+                    'lev'       : 'zhalf'                                                      ,
                     'minmax'    : True                                                      ,
                     'units'     : variables_info[self.variable]['units']                    ,
                     'title'     : '{0} ({1})'.format(variables_info[self.variable]['name'],
@@ -220,7 +220,7 @@ class Diagnostic:
                     'title'  : '{0} ({1}) - {2}'.format(variables_info[self.variable]['name'],
                                                         variables_info[self.variable]['units'],
                                                         self.plot_details['rtitle']),
-                    'lev'    : 'zf'                                                 ,
+                    'lev'    : 'zfull'                                              ,
                     'init'   : False                                                ,
                     'lbias'  : False                                                ,
                     'units'  : variables_info[self.variable]['units']               ,
@@ -246,7 +246,7 @@ class Diagnostic:
                 plotdico = {
                     'title'  : '{0} ({1}) - First timestep'.format(variables_info[self.variable]['name'],
                                                                     variables_info[self.variable]['units']),
-                    'lev'    : 'zf'                                                                        ,
+                    'lev'    : 'zfull'                                                                     ,
                     'init'   : False                                                                       ,
                     'lbias'  : False                                                                       ,
                     'units'  : variables_info[self.variable]['units']                                      ,
