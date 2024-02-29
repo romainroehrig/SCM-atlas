@@ -119,7 +119,7 @@ class Diagnostic:
                     try:
                         compute(fin, fout, self.variable)
                         ncfiles[dat.name] = fout
-                    except (KeyError, AttributeError, FileNotFoundError) as e:
+                    except (KeyError, AttributeError, FileNotFoundError, IndexError) as e:
                         logger.debug(e)
                         ncfiles[dat.name] = dat.ncfile
                         pass

@@ -142,7 +142,7 @@ def f_zct(zf,zneb):
 def f_int(ph,var2int):
 
     nt,nlev = var2int.shape
-    zout = np.zeros(nt,dtype=np.float)
+    zout = np.zeros(nt,dtype=np.float32)
 
     if len(ph.shape) == 1:
         ph = np.tile(ph.data,(nt,1))
@@ -167,16 +167,16 @@ def f_avg(zf, var2avg, zmin, zmax):
 
     nt,nlev = var2avg.shape
 
-    zout = np.zeros(nt,dtype=np.float)
-    ztot = np.zeros(nt,dtype=np.float)
+    zout = np.zeros(nt,dtype=np.float32)
+    ztot = np.zeros(nt,dtype=np.float32)
 
     if len(zf.shape) == 1:
         zf = np.tile(zf.data,(nt,1))
 
     if zf[0,0] < zf[0,1]:
 
-        zup = np.zeros((nt,nlev),dtype=np.float)
-        zdn = np.zeros((nt,nlev),dtype=np.float)
+        zup = np.zeros((nt,nlev),dtype=np.float32)
+        zdn = np.zeros((nt,nlev),dtype=np.float32)
 
         zup[:,nlev-1] = 1.e20
         zdn[:,0] = 0
@@ -184,7 +184,7 @@ def f_avg(zf, var2avg, zmin, zmax):
         zup[:,0:nlev-1] = (zf[:,0:nlev-1]+zf[:,1:nlev])/2.
         zdn[:,1:nlev] = (zf[:,0:nlev-1]+zf[:,1:nlev])/2.
 
-        dz = np.zeros((nt,nlev),dtypecode=np.float)
+        dz = np.zeros((nt,nlev),dtypecode=np.float32)
         dz = np.where((zdn <= zmin) & (zup > zmin), zup-zmin, dz)
         dz = np.where((zdn < zmax)  & (zup >= zmax), zmax - zdn, dz)
         dz = np.where((zdn >= zmin) & (zup <= zmax), zup - zdn, dz)
@@ -248,7 +248,10 @@ def f_qt(ds):
 
     try:
         ql = get_ql(ds)
-        tmp = ds.qv + ql
+        qi = get_qi(ds)
+        qr = get_qr(ds)
+        qsn = get_qsn(ds)
+        tmp = ds.qv + ql + qi + qr + qsn
     except:
         raise
 
@@ -294,6 +297,23 @@ def add_qi_to_dataset(ds):
     except:
         raise 
 
+def add_qc_to_dataset(ds):
+    """
+    Compute qc=ql+qi. If no ql or no qi, raise exception.
+    """
+
+    try:
+        ds['qc'] = get_ql(ds) + get_qi(ds)
+        ds['qc'].attrs['long_name'] = 'Condensed water content'
+        ds['qc'].attrs['units'] = 'kg kg-1'
+    except AttributeError as e:
+        logger.debug('Error in computing qc=ql+qi:' + str(e))
+        logger.debug('Most probably, either ql or qi does not exist in the dataset')
+        logger.debug('Thus just raise exception (AttributeError)')
+        raise
+    except:
+        raise 
+
 def add_qr_to_dataset(ds):
     """
     Compute qr=qr+qrc in case of PCMT. If no qr or no qrc, raise exception.
@@ -327,6 +347,33 @@ def add_qsn_to_dataset(ds):
         raise
     except:
         raise  
+
+def add_qp_to_dataset(ds):
+    """
+    Compute qp=qr+qsn+qg. If no qr or no qsn, raise exception.
+    If no qg, just assume the model do not have graupel
+    """
+
+    try:
+        ds['qp'] = ds.qg
+    except AttributeError as e:
+        logger.debug('Most probably, dataset has no graupel. Raised error:' + str(e))
+        logger.debug('Just assume graupel is not relevant for that model')
+        ds['qp'] = ds['theta']*0.
+    except:
+        raise
+
+    try:
+        ds['qp'] += get_qr(ds) + get_qsn(ds)
+        ds['qp'].attrs['long_name'] = 'Precipitating water content'
+        ds['qp'].attrs['units'] = 'kg kg-1'
+    except AttributeError as e:
+        logger.debug('Error in computing qp=qr+qsn(+qg):' + str(e))
+        logger.debug('Most probably, either qr or qsn does not exist in the dataset')
+        logger.debug('Thus just raise exception (AttributeError)')
+        raise
+    except:
+        raise
 
 def get_ql(ds):
     """
@@ -454,25 +501,38 @@ def compute(filein, fileout, var):
             add_ql_to_dataset(ds)
         elif var == 'qi':
             add_qi_to_dataset(ds)
+        elif var == 'qc':
+            add_qc_to_dataset(ds)            
         elif var == 'qr':
             add_qr_to_dataset(ds)
         elif var == 'qsn':
             add_qsn_to_dataset(ds)
+        elif var == 'qp':
+            add_qp_to_dataset(ds)            
         elif var == 'lwp':
             tmp = get_ql(ds)
-            ds['lwp'] = f_int(ds.zhalf, tmp)
+            ds['lwp'] = f_int(ds.phalf, tmp)
             ds['lwp'].attrs['long_name'] = 'Liquid water path'
             ds['lwp'].attrs['units'] = 'kg m-2'
         elif var == 'rwp':
             tmp = get_qr(ds)
-            ds['rwp'] = f_int(ds.zhalf, tmp)
+            ds['rwp'] = f_int(ds.phalf, tmp)
             ds['rwp'].attrs['long_name'] = 'Rain water path'
             ds['rwp'].attrs['units'] = 'kg m-2'
         elif var == 'iwp':
             tmp = get_qi(ds)
-            ds['iwp'] = f_int(ds.zhalf, tmp)
+            ds['iwp'] = f_int(ds.phalf, tmp)
             ds['iwp'].attrs['long_name'] = 'Ice water path'
             ds['iwp'].attrs['units'] = 'kg m-2'
+        elif var == 'swp':
+            tmp = get_qsn(ds)
+            ds['swp'] = f_int(ds.phalf, tmp)
+            ds['swp'].attrs['long_name'] = 'Snow water path'
+            ds['swp'].attrs['units'] = 'kg m-2'
+        elif var == 'gwp':
+            ds['gwp'] = f_int(ds.phalf, ds.qg)
+            ds['gwp'].attrs['long_name'] = 'Graupel water path'
+            ds['gwp'].attrs['units'] = 'kg m-2'            
         elif var == 'theta_0_500':
             ds[var] = f_avg(ds.zfull,ds.theta,0,500)
             ds[var].attrs['long_name'] = 'Potential temperature averaged over 0-500m'

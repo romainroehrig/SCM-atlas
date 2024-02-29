@@ -1,4 +1,4 @@
-var2compute = ['zcb','zct','ql','qr','lwp','rwp','qt','thetal']
+var2compute = ['zcb','zct','ql','qi','qc','qr','qsn','qp','lwp','iwp','rwp','swp','gwp','qt','thetal']
 
 variables_info = {
         # 2D Variables
@@ -12,8 +12,11 @@ variables_info = {
         'cl':       {'name': 'Cloud fraction',                     'units': '%',                    'coef': 100.},
         'ql':       {'name': 'Liquid Water Content',               'units': 'mg kg$^{-1}$',         'coef': 1.e6},
         'qi':       {'name': 'Ice Water Content',                  'units': 'mg kg$^{-1}$',         'coef': 1.e6},
+        'qc':       {'name': 'Condensed Water Content',            'units': 'mg kg$^{-1}$',         'coef': 1.e6},        
         'qr':       {'name': 'Rain Water Content',                 'units': 'mg kg$^{-1}$',         'coef': 1.e6},
         'qsn':      {'name': 'Snow Water Content',                 'units': 'mg kg$^{-1}$',         'coef': 1.e6},
+        'qg':       {'name': 'Graupel Water Content',              'units': 'mg kg$^{-1}$',         'coef': 1.e6},
+        'qp':       {'name': 'Precipitating Water Content',        'units': 'mg kg$^{-1}$',         'coef': 1.e6},        
         'qt':       {'name': 'Total Water Content',                'units': 'g kg$^{-1}$',        'coef': 1000.},
         'tke':      {'name': 'Turbulent kinetic energy',           'units': 'm$^2$ s$^{-2}$',       'coef': 1.},
         'w_up':     {'name': 'Updraft vertical velocity',          'units': 'm s$^{-1}$',           'coef': 1.},
@@ -37,4 +40,5 @@ variables_info = {
         'lwp':      {'name': 'Liquid water path',                  'units': 'g m$^{{-2}}$',         'coef': 1000.},
         'iwp':      {'name': 'Ice water path',                     'units': 'g m$^{{-2}}$',         'coef': 1000.},
         'rwp':      {'name': 'Rain path',                          'units': 'g m$^{{-2}}$',         'coef': 1000.},
+        'gwp':      {'name': 'Graupel path',                       'units': 'g m$^{{-2}}$',         'coef': 1000.},        
 }

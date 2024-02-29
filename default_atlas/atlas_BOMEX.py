@@ -50,8 +50,8 @@ diagnostics = OrderedDict([
         'dtlabel'  : '1h'                ,
         'xname'    : '24 June 1969 (UTC)',
         'variables': OrderedDict([
-            ('u', {'levels': [i*0.5 for i in range(-16,1,1)], 'extend':'both'}),
-            ('v', {'levels': [i*0.5 for i in range(-8,9,1)] ,  'extend':'both'}),
+            ('ua', {'levels': [i*0.5 for i in range(-16,1,1)], 'extend':'both'}),
+            ('va', {'levels': [i*0.5 for i in range(-8,9,1)] ,  'extend':'both'}),
         ]),
     }), # end 2D_dyn
     #######################
@@ -80,11 +80,11 @@ diagnostics = OrderedDict([
         'dtlabel'  : '1h'                ,
         'xname'    : '24 June 1969 (UTC)',
         'variables': OrderedDict([
-            ('shf',   {'ymin':  0., 'ymax':   20.}),
-            ('lhf',   {'ymin':  0., 'ymax':  200.}),
+            ('hfss',  {'ymin':  0., 'ymax':   20.}),
+            ('hfls',  {'ymin':  0., 'ymax':  200.}),
             ('ustar', {'ymin':  0., 'ymax':    1.}),
-            ('tsurf', {'ymin':280., 'ymax':  320.}),
-            ('rain',  {'ymin':  0., 'ymax':    2.}),
+            ('ts',    {'ymin':280., 'ymax':  320.}),
+            ('pr',    {'ymin':  0., 'ymax':    2.}),
         ]),
     }), # end TS_surface         
     #######################
@@ -100,9 +100,9 @@ diagnostics = OrderedDict([
         'dtlabel'  : '1h'                ,
         'xname'    : '24 June 1969 (UTC)',
         'variables': OrderedDict([
-            ('rneb', {'levels': list(range(0,16,1))           , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
-            ('ql'  , {'levels': list(range(0,16,1))           , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
-            ('qr'  , {'levels': [i*0.2 for i in range(0,21,1)], 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('cl', {'levels': list(range(0,16,1))           , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('ql', {'levels': list(range(0,16,1))           , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('qr', {'levels': [i*0.2 for i in range(0,21,1)], 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
         ]),
     }), # end 2D_cloud
     #######################
@@ -114,7 +114,7 @@ diagnostics = OrderedDict([
         'dtlabel'  : '1h'                ,
         'xname'    : '24 June 1969 (UTC)',
         'variables': OrderedDict([
-            ('cc',  {'ymin':  0., 'ymax':   60.}),
+            ('clt', {'ymin':  0., 'ymax':   60.}),
             ('zcb', {'ymin':  0., 'ymax': 1000.}),
             ('zct', {'ymin':  0., 'ymax': 4000.}),
             ('lwp', {'ymin':  0., 'ymax':   40.}),            
@@ -133,13 +133,13 @@ diagnostics = OrderedDict([
         'levunits' : 'km'                     ,
         'rtitle'   : '7-8 hour'               ,        
         'variables': OrderedDict([
-            ('u',        {'xmin':  -12.  , 'xmax':   0. , 'init':True }),
-            ('v',        {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
-            ('theta',    {'xmin':  295.  , 'xmax': 325. , 'init':True }),
-            ('qv',       {'xmin':    0.  , 'xmax':  18. , 'init':True }),
-            ('rneb',     {'xmin':    0.  , 'xmax':  15.               }),
-            ('ql',       {'xmin':    0.  , 'xmax':  30.               }),
-            ('qr',       {'xmin':    0.  , 'xmax':   3.               }),
+            ('ua',    {'xmin':  -12.  , 'xmax':   0. , 'init':True }),
+            ('va',    {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
+            ('theta', {'xmin':  295.  , 'xmax': 325. , 'init':True }),
+            ('qv',    {'xmin':    0.  , 'xmax':  18. , 'init':True }),
+            ('cl',    {'xmin':    0.  , 'xmax':  15.               }),
+            ('ql',    {'xmin':    0.  , 'xmax':  30.               }),
+            ('qr',    {'xmin':    0.  , 'xmax':   3.               }),
         ]),
     }), # end hour7-8_basic   
     #######################
@@ -154,13 +154,13 @@ diagnostics = OrderedDict([
         'levunits' : 'km'                      ,
         'rtitle'   : '9-10 hour'               ,        
         'variables': OrderedDict([
-            ('u',        {'xmin':  -12.  , 'xmax':   0. , 'init':True }),
-            ('v',        {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
-            ('theta',    {'xmin':  295.  , 'xmax': 325. , 'init':True }),
-            ('qv',       {'xmin':    0.  , 'xmax':  18. , 'init':True }),
-            ('rneb',     {'xmin':    0.  , 'xmax':  15.               }),
-            ('ql',       {'xmin':    0.  , 'xmax':  30.               }),
-            ('qr',       {'xmin':    0.  , 'xmax':   3.               }), 
+            ('ua',    {'xmin':  -12.  , 'xmax':   0. , 'init':True }),
+            ('va',    {'xmin':   -3.  , 'xmax':   3. , 'init':True }),
+            ('theta', {'xmin':  295.  , 'xmax': 325. , 'init':True }),
+            ('qv',    {'xmin':    0.  , 'xmax':  18. , 'init':True }),
+            ('cl',    {'xmin':    0.  , 'xmax':  15.               }),
+            ('ql',    {'xmin':    0.  , 'xmax':  30.               }),
+            ('qr',    {'xmin':    0.  , 'xmax':   3.               }), 
         ]),
     }), # end hour9-10_basic    
     #######################
@@ -236,8 +236,8 @@ diagnostics = OrderedDict([
         'yname'    : 'altitude (km)',
         'levunits' : 'km'           ,
         'variables': OrderedDict([
-            ('u',     {'xmin': -12., 'xmax':    0.}),
-            ('v',     {'xmin':  -3., 'xmax':    3.}),
+            ('ua',    {'xmin': -12., 'xmax':    0.}),
+            ('va',    {'xmin':  -3., 'xmax':    3.}),
             ('theta', {'xmin': 295., 'xmax':  450.}),
             ('qv',    {'xmin':  -1., 'xmax':   18.}),
             ('ql',    {'xmin':  -1., 'xmax':   20.}),
@@ -254,8 +254,8 @@ diagnostics = OrderedDict([
         'yname'    : 'altitude (km)',
         'levunits' : 'km'           ,
         'variables': OrderedDict([
-            ('u',     {'xmin': -12., 'xmax':    0.}),
-            ('v',     {'xmin':  -3., 'xmax':    3.}),
+            ('ua',    {'xmin': -12., 'xmax':    0.}),
+            ('va',    {'xmin':  -3., 'xmax':    3.}),
             ('theta', {'xmin': 295., 'xmax':  325.}),
             ('qv',    {'xmin':  -1., 'xmax':   18.}),
             ('ql',    {'xmin':  -1., 'xmax':   20.}),
