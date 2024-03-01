@@ -269,7 +269,7 @@ def add_ql_to_dataset(ds):
     """
 
     try:
-        ds['ql'] = ds.ql + ds.qlc
+        ds['ql'] = get_ql(ds) #ds.ql + ds.qlc
         ds['ql'].attrs['long_name'] = 'Liquid water content'
         ds['ql'].attrs['units'] = 'kg kg-1'
     except AttributeError as e:
@@ -286,7 +286,7 @@ def add_qi_to_dataset(ds):
     """
 
     try:
-        ds['qi'] = ds.qi + ds.qic
+        ds['qi'] = get_qi(ds) #ds.qi + ds.qic
         ds['qi'].attrs['long_name'] = 'Ice water content'
         ds['qi'].attrs['units'] = 'kg kg-1'
     except AttributeError as e:
@@ -320,7 +320,7 @@ def add_qr_to_dataset(ds):
     """
 
     try:
-        ds['qr'] = ds.qr + ds.qrc
+        ds['qr'] = get_qr(ds) #ds.qr + ds.qrc
         ds['qr'].attrs['long_name'] = 'Rain water content'
         ds['qr'].attrs['units'] = 'kg kg-1'
     except AttributeError as e:
@@ -337,7 +337,7 @@ def add_qsn_to_dataset(ds):
     """
 
     try:
-        ds['qsn'] = ds.qsn + ds.qsnc
+        ds['qsn'] = get_qsn(ds) #ds.qsn + ds.qsnc
         ds['qsn'].attrs['long_name'] = 'Snow water content'
         ds['qsn'].attrs['units'] = 'kg kg-1'
     except AttributeError as e:
@@ -381,7 +381,11 @@ def get_ql(ds):
     """
 
     try:
-        tmp = ds.ql+ds.qlc
+        tmp1 = ds.ql
+        tmp2 = ds.qlc
+        tmp1 = tmp1.where(tmp1 > 0, other=0)
+        tmp2 = tmp2.where(tmp2 > 0, other=0)
+        tmp = tmp1 + tmp2
         tmp.attrs['long_name'] = 'Liquid water content'
         tmp.attrs['units'] = 'kg kg-1'
     except AttributeError as e:
@@ -390,6 +394,7 @@ def get_ql(ds):
         logger.debug('Try to get ql')
         try:
             tmp = ds.ql
+            tmp = tmp.where(tmp > 0, other=0)
             logger.debug('Dataset has ql. We can continue!')
         except AttributeError as e:
             logger.debug('Dataset has no ql: ' + str(e))
@@ -409,7 +414,11 @@ def get_qi(ds):
     """
 
     try:
-        tmp = ds.qi+ds.qic
+        tmp1 = ds.qi
+        tmp2 = ds.qic
+        tmp1 = tmp1.where(tmp1 > 0, other=0)
+        tmp2 = tmp2.where(tmp2 > 0, other=0)
+        tmp = tmp1 + tmp2
         tmp.attrs['long_name'] = 'Ice water content'
         tmp.attrs['units'] = 'kg kg-1'
     except AttributeError as e:
@@ -418,6 +427,7 @@ def get_qi(ds):
         logger.debug('Try to get qi')
         try:
             tmp = ds.qi
+            tmp = tmp.where(tmp > 0, other=0)
             logger.debug('Dataset has qi. We can continue!')
         except AttributeError as e:
             logger.debug('Dataset has no ql: ' + str(e))
@@ -437,7 +447,11 @@ def get_qr(ds):
     """
 
     try:
-        tmp = ds.qr+ds.qrc
+        tmp1 = ds.qr
+        tmp2 = ds.qrc
+        tmp1 = tmp1.where(tmp1 > 0, other=0)
+        tmp2 = tmp2.where(tmp2 > 0, other=0)
+        tmp = tmp1 + tmp2
         tmp.attrs['long_name'] = 'Rain water content'
         tmp.attrs['units'] = 'kg kg-1'
     except AttributeError as e:
@@ -446,6 +460,7 @@ def get_qr(ds):
         logger.debug('Try to get qr')
         try:
             tmp = ds.qr
+            tmp = tmp.where(tmp > 0, other=0)
             logger.debug('Dataset has qr. We can continue!')
         except AttributeError as e:
             logger.debug('Dataset has no qr: ' + str(e))
@@ -465,7 +480,11 @@ def get_qsn(ds):
     """
 
     try:
-        tmp = ds.qsn+ds.qsnc
+        tmp1 = ds.qsn
+        tmp2 = ds.qsnc
+        tmp1 = tmp1.where(tmp1 > 0, other=0)
+        tmp2 = tmp2.where(tmp2 > 0, other=0)
+        tmp = tmp1 + tmp2
         tmp.attrs['long_name'] = 'Snow water content'
         tmp.attrs['units'] = 'kg kg-1'
     except AttributeError as e:
@@ -474,6 +493,7 @@ def get_qsn(ds):
         logger.debug('Try to get qsn')
         try:
             tmp = ds.qsn
+            tmp = tmp.where(tmp > 0, other=0)
             logger.debug('Dataset has qsn. We can continue!')
         except AttributeError as e:
             logger.debug('Dataset has no qsn: ' + str(e))

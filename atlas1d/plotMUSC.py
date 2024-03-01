@@ -298,18 +298,13 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
                 tmax_rel = cftime.date2num(tmax, tunits)
 
                 time = cftime.date2num(time, tunits)
-                nt, = time.shape
-                #print(nt)
-                dt = time[1]-time[0]
-                timenew = np.zeros(nt+1, np.float32)
-                timenew[1:nt] = (time[0:nt-1]+time[1:nt])/2
-                timenew[0] = time[0] - dt/2.
-                timenew[nt] = time[nt-1] + dt/2.
-                time = timenew
-                #print(time.shape)
+                dt = time[1] - time[0]
 
-                    
-      
+                nt0, nlev0 = data.shape
+                time1 = np.zeros(nt0+1)
+                time1[0:nt0] = time[:]-dt/2
+                time1[nt0] = time[-1]+dt/2
+
                 try:
                     levax = ds[lev[k]].data
                 except:
@@ -326,26 +321,26 @@ def plot2D(filein,varname,coef=None,units='',lev=None,levunits=None,tmin=None,tm
                 levax -= zorog
 
                 levax = update_level(levax, lev[k], levunits[k])
-                #print(levax.shape)
       
                 if len(levax.shape) == 2:
                     nt,nlev = levax.shape
-                    timeax = np.tile(time[:],(nlev,1))
-                    X = timeax
-                    Y = np.transpose(levax)
-                    Ynew = np.zeros((nlev,nt+1), np.float32)
-                    Ynew[:,1:nt] = (Y[:,0:nt-1]+Y[:,1:nt])/2
-                    Ynew[:,0] = Y[:,0]
-                    Ynew[:,nt] = Y[:,nt-1]
-                    Y = Ynew
+                    if nlev == nlev0+1:
+                        time = time1
+                        levax1 = np.zeros((nt0+1,nlev))
+                        levax1[0,:] = levax[0,:]
+                        levax1[1:nt0+1,:] = levax[:,:]
+                        levax = levax1
                 else:
                     nlev, = levax.shape
+                    if nlev == nlev0+1:
+                        time = time1
                     nt, = time.shape
-                    #print('here',nt)
-                    timeax = np.tile(time[:],(nlev,1))
                     levax = np.tile(levax,(nt,1))
-                    X = np.array(timeax[:])
-                    Y = np.transpose(levax[:])
+
+                timeax = np.tile(time[:],(nlev,1))
+
+                X = np.array(timeax[:])
+                Y = np.transpose(levax[:])
 
                 if isinstance(namefig,str):
                     tmp = k + '_' + namefig
