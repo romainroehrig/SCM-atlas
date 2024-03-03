@@ -1,9 +1,10 @@
-var2compute = ['zcb','zct','ql','qi','qc','qr','qsn','qp','lwp','iwp','rwp','swp','gwp','qt','thetal']
+var2compute = ['zcb','zct','ql','qi','qc','qr','qsn','qp','lwp','iwp','rwp','swp','gwp','qt','thetal','windspeed']
 
 variables_info = {
         # 2D Variables
         'ua':       {'name': 'Zonal wind',                         'units': 'm s$^{-1}$',           'coef': 1.},
         'va':       {'name': 'Meridional wind',                    'units': 'm s$^{-1}$',           'coef': 1.},
+        'windspeed':{'name': 'Horizontal wind speed',              'units': 'm s$^{-1}$',           'coef': 1.},
         'theta':    {'name': 'Potential temperature',              'units': 'K',                    'coef': 1.},
         'thetal':   {'name': 'Liquid-Water Potential Temperature', 'units': 'K',            'coef': 1.},
         'ta':       {'name': 'Temperture',                         'units': 'K',                    'coef': 1.},

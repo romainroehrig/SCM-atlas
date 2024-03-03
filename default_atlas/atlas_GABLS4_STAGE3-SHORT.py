@@ -22,20 +22,26 @@ dir_references = os.getenv('SCM_REFERENCES')
 # References for AYOTTE/00SC atlas
 ####################################
 
-#tmp = OrderedDict([
-#       ('MO'     ,  {'ncfile': os.path.join(dir_references, 'GABLS1/files/MO_1m_allvar.nc'), 'line': 'k'}),
-#       ])
+tmp = OrderedDict([
+       ('Meso-NH' , {'ncfile': os.path.join(dir_references, 'GABLS4/STAGE3-SHORT/GABLS4_STAGE3-SHORT_MESONH_dephycf.nc'),  'line': 'k'}),
+       ('CSIRO'   , {'ncfile': os.path.join(dir_references, 'GABLS4/STAGE3-SHORT/GABLS4_STAGE3-SHORT_CSIRO_dephycf.nc'),   'line': 'grey'}),
+       ('IMUK'    , {'ncfile': os.path.join(dir_references, 'GABLS4/STAGE3-SHORT/GABLS4_STAGE3-SHORT_IMUK_dephycf.nc'),    'line': 'grey'}),
+#       ('DALES'   , {'ncfile': os.path.join(dir_references, 'GABLS4/STAGE3-SHORT/GABLS4_STAGE3-SHORT_DALES_dephycf.nc'),   'line': 'k'}),
+       ('UKMO'    , {'ncfile': os.path.join(dir_references, 'GABLS4/STAGE3-SHORT/GABLS4_STAGE3-SHORT_UKMO_dephycf.nc'),    'line': 'grey'}),
+       ('MICROHH' , {'ncfile': os.path.join(dir_references, 'GABLS4/STAGE3-SHORT/GABLS4_STAGE3-SHORT_MICROHH_dephycf.nc'), 'line': 'grey'}),
+       ('UCONN'   , {'ncfile': os.path.join(dir_references, 'GABLS4/STAGE3-SHORT/GABLS4_STAGE3-SHORT_UCONN_dephycf.nc'),   'line': 'grey'}),
+       ])
 
 references = []
-#for ref in tmp.keys():
-#    references.append(Dataset(name=ref,case='GABLS1',subcase='REF',ncfile=tmp[ref]['ncfile'],line=tmp[ref]['line']))
+for ref in tmp.keys():
+    references.append(Dataset(name=ref,case='GABLS4',subcase='STAGE3-SHORT',ncfile=tmp[ref]['ncfile'],line=tmp[ref]['line']))
 
 ####################################
 # Configuration file for GABLS1 atlas
 ####################################
 
-tmin = datetime(2009,12,11,0)
-tmax = datetime(2009,12,12,12)
+tmin = datetime(2009,12,11,10)
+tmax = datetime(2009,12,11,22)
 
 diagnostics = OrderedDict([
     ("2D",{
@@ -44,16 +50,17 @@ diagnostics = OrderedDict([
         'tmin'     : tmin                   ,
         'tmax'     : tmax                   ,
         'ymin'     :    0.                  ,
-        'ymax'     :    400                 ,
+        'ymax'     :    150                 ,
         'yname'    : 'altitude (m)'         ,
         'levunits' : 'm'                    ,
         'dtlabel'  : '3h'                   ,
         'xname'    : 'Hours since beginning',
         'variables': OrderedDict([
-            ('theta', {'levels': list(range(270,281,1)), 'extend':'both'}),
-            ('ua',    {'levels': np.arange(0,4.5,0.5)  , 'extend':'both'}),
-            ('va',    {'levels': np.arange(0,5.5,0.5)  , 'extend':'both'}),
-            ('qv',    {'levels': np.arange(0,1.1,0.1)  , 'extend':'max'}),
+            ('theta',     {'levels': list(range(265,280,1)), 'extend':'both'}),
+            ('windspeed', {'levels': np.arange(0,6.5,0.5) , 'extend':'both'}),
+            ('ua',        {'levels': np.arange(0,3.3,0.3)  , 'extend':'both'}),
+            ('va',        {'levels': np.arange(0,6.5,0.5)  , 'extend':'both'}),
+            ('qv',        {'levels': np.arange(0,1.1,0.1)  , 'extend':'max'}),
         ]),
     }), # end 2D
     #######################
@@ -62,7 +69,7 @@ diagnostics = OrderedDict([
         'type'     : 'plotTS'               ,
         'tmin'     : tmin                   ,
         'tmax'     : tmax                   ,        
-        'dtlabel'  : '3h'                   ,
+        'dtlabel'  : '1h'                   ,
         'xname'    : 'Hours since beginning',
         'variables': OrderedDict([
             ('hfss',  {'ymin':-20., 'ymax':   25.}),
@@ -73,39 +80,41 @@ diagnostics = OrderedDict([
         ]),
     }), # end TS_surface         
     #######################
-    ("hour5-6_basic",{
-        'head'     : 'Basic 5-6h'             ,
+    ("hour4-5_basic",{
+        'head'     : 'Basic 4-5h'             ,
         'type'     : 'plotAvgP'               ,
-        'tmin'     : tmin + timedelta(hours=5),
-        'tmax'     : tmin + timedelta(hours=6),
+        'tmin'     : tmin + timedelta(hours=4),
+        'tmax'     : tmin + timedelta(hours=5),
         'ymin'     : 0.                       ,
-        'ymax'     : 400                      ,
+        'ymax'     : 150                      ,
         'yname'    : 'altitude (m)'           ,
         'levunits' : 'm'                      ,
-        'rtitle'   : '5-6 hour'               ,        
+        'rtitle'   : '4-5 hour'               ,        
         'variables': OrderedDict([
-            ('ua',    {'xmin':    0. , 'xmax':   4. , 'init':True }),
-            ('va',    {'xmin':    0. , 'xmax':   6. , 'init':True }),
-            ('theta', {'xmin':  270. , 'xmax': 280. , 'init':True }),
+            ('windspeed', {'xmin':    0. , 'xmax':   6., 'init':True }),
+            ('ua',        {'xmin':    0. , 'xmax':   3., 'init':True }),
+            ('va',        {'xmin':    0. , 'xmax':   6., 'init':True }),
+            ('theta',     {'xmin':  265. , 'xmax': 280., 'init':True }),
         ]),
-    }), # end hour7-8_basic   
+    }), # end hour4-5_basic   
     #######################
-    ("hour15-16_basic",{
-        'head'     : 'Basic 15-16h'            ,
-        'type'     : 'plotAvgP'                ,
-        'tmin'     : tmin + timedelta(hours=15),
-        'tmax'     : tmin + timedelta(hours=16),
-        'ymin'     : 0.                        ,
-        'ymax'     : 400                       ,
-        'yname'    : 'altitude (m)'            ,
-        'levunits' : 'm'                       ,
-        'rtitle'   : '15-16 hour'                ,        
+    ("hour8-9_basic",{
+        'head'     : 'Basic 8-9h'             ,
+        'type'     : 'plotAvgP'               ,
+        'tmin'     : tmin + timedelta(hours=8),
+        'tmax'     : tmin + timedelta(hours=9),
+        'ymin'     : 0.                       ,
+        'ymax'     : 150                      ,
+        'yname'    : 'altitude (m)'           ,
+        'levunits' : 'm'                      ,
+        'rtitle'   : '8-9 hour'               ,        
         'variables': OrderedDict([
-            ('ua',    {'xmin':   -4. , 'xmax':   4. , 'init':True }),
-            ('va',    {'xmin':    0. , 'xmax':   6. , 'init':True }),
-            ('theta', {'xmin':  270. , 'xmax': 280. , 'init':True }),
+            ('windspeed', {'xmin':    0. , 'xmax':   7. , 'init':True }),
+            ('ua',        {'xmin':    0. , 'xmax':   4. , 'init':True }),
+            ('va',        {'xmin':    0. , 'xmax':   6. , 'init':True }),
+            ('theta',     {'xmin':  262. , 'xmax': 280. , 'init':True }),
         ]),
-    }), # end hour7-8_basic   
+    }), # end hour8-9_basic   
     #######################
     
     ("init",{
@@ -130,7 +139,7 @@ diagnostics = OrderedDict([
         'head'     : 'Init (zoom)'  ,
         'type'     : 'plotInitP'    ,
         'ymin'     : 0.             ,
-        'ymax'     : 400            ,
+        'ymax'     : 150            ,
         'yname'    : 'altitude (m)' ,
         'levunits' : 'm'            ,
         'variables': OrderedDict([

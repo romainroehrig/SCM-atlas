@@ -507,6 +507,25 @@ def get_qsn(ds):
 
     return tmp
 
+def get_windspeed(ds):
+    """
+    Get wind speed in dataset ds
+    """
+    func = lambda x, y: np.sqrt(x**2 + y**2)
+    try:
+        tmp = ds.windspeed
+    except AttributeError as e:
+        logger.debug('Error in getting windspeed:' + str(e))
+        logger.debug('Try to compute it from ua and va')
+        tmp = xr.apply_ufunc(func, ds.ua, ds.va)
+        logger.debug('Windspeed has been computed')
+    except:
+       raise
+
+    tmp.attrs['long_name'] = 'Horizontal wind speed'
+    tmp.attrs['units'] = 'm s-1'
+
+    return tmp
 
 def compute(filein, fileout, var):
 
@@ -595,6 +614,8 @@ def compute(filein, fileout, var):
             ds[var] = f_thetal(ds)
         elif var == 'qt':
             ds[var] = f_qt(ds)
+        elif var == 'windspeed':
+            ds[var] = get_windspeed(ds) 
         else:
             logger.error('variable to be computed is unknown:', var)
             raise NotImplementedError

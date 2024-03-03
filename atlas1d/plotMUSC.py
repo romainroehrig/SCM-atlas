@@ -116,11 +116,11 @@ def plot_profile(filein,varname,lines=None,coef=None,units='',lev=None,levunits=
                 time = ds[varname[k]].time.data
                 if tmin is not None and tmax is not None:
 
-                    data[k] = np.average(ds[varname[k]].sel(time=slice(tmin,tmax)).data,axis=0)*coef[k]
+                    data[k] = np.ma.average(ds[varname[k]].sel(time=slice(tmin,tmax)).data,axis=0)*coef[k]
                     level[k] = get_level(ds, lev[k], nlev=data[k].shape[0])
 
                     if len(level[k].shape) == 2:
-                        level[k] = np.average(level[k].sel(time=slice(tmin,tmax)).data,axis=0)
+                        level[k] = np.ma.average(level[k].sel(time=slice(tmin,tmax)).data,axis=0)
 
                 elif t0:
 

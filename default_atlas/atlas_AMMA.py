@@ -22,6 +22,7 @@ dir_references = os.getenv('SCM_REFERENCES')
 
 tmp = OrderedDict([
        ('LES',{'ncfile': os.path.join(dir_references, 'AMMA.new/AMMA_LES_MESONH.nc'),  'line': 'k'}),
+       ('LES0',{'ncfile': os.path.join(dir_references, 'AMMA/AMMA_LES_MESONH_RR.nc'),  'line': 'grey'}),
        ])
 
 references = []

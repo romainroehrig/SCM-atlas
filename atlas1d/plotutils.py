@@ -32,20 +32,20 @@ def plot1D(x,y,lines=None,title='',xname='',yname='',xlabels=None,ylabels=None,x
     if xmin is None:
         xmin = 1.e20
         for k in x.keys():
-            xmin = min(xmin,np.min(x[k]))
+            xmin = min(xmin,np.nanmin(x[k]))
     if xmax is None:
         xmax = -1.e20
         for k in x.keys():
             tmp = np.where(x[k] == 1.e20, -1.e20, x[k])
-            xmax = max(xmax,np.max(tmp))
+            xmax = max(xmax,np.nanmax(tmp))
     if ymin is None:
         ymin = 1.e20
         for k in y.keys():
-            ymin = min(ymin,np.min(y[k]))
+            ymin = min(ymin,np.nanmin(y[k]))
     if ymax is None:
         ymax = -1.e20
         for k in y.keys():
-            ymax = max(ymax,np.max(y[k]))
+            ymax = max(ymax,np.nanmax(y[k]))
 
 
     plt.xlim(xmin,xmax)
@@ -135,12 +135,14 @@ def plot2D(x,y,data,cmap=plt.cm.RdBu,levels=None,firstwhite=False,badcolor='dark
             tmp = ma.where(x[:nx,:ny] <= xmax, tmp, 1.e20)
             tmp = ma.where(y[:nx,:ny] >= ymin, tmp, 1.e20)
             tmp = ma.where(y[:nx,:ny] <= ymax, tmp, 1.e20)
+            tmp = ma.where(np.isnan(tmp), 1.e20, tmp)
             mini = ma.min(tmp)
 
             tmp = ma.where(x[:nx,:ny] >= xmin, data, -1.e20)
             tmp = ma.where(x[:nx,:ny] <= xmax, tmp, -1.e20)
             tmp = ma.where(y[:nx,:ny] >= ymin, tmp, -1.e20)
             tmp = ma.where(y[:nx,:ny] <= ymax, tmp, -1.e20)
+            tmp = ma.where(np.isnan(tmp), -1.e20, tmp)
             maxi = ma.max(tmp)
         else:
             nx,ny = data.shape
@@ -148,12 +150,14 @@ def plot2D(x,y,data,cmap=plt.cm.RdBu,levels=None,firstwhite=False,badcolor='dark
             tmp = ma.where(x[:nx,:ny] <= xmax, tmp, 1.e20)
             tmp = ma.where(y[:nx,:ny] >= ymax, tmp, 1.e20)
             tmp = ma.where(y[:nx,:ny] <= ymin, tmp, 1.e20)
+            tmp = ma.where(np.isnan(tmp), 1.e20, tmp)
             mini = ma.min(tmp)
 
             tmp = ma.where(x[:nx,:ny] >= xmin, data, -1.e20)
             tmp = ma.where(x[:nx,:ny] <= xmax, tmp, -1.e20)
             tmp = ma.where(y[:nx,:ny] >= ymax, tmp, -1.e20)
             tmp = ma.where(y[:nx,:ny] <= ymin, tmp, -1.e20)
+            tmp = ma.where(np.isnan(tmp), -1.e20, tmp)
             maxi = ma.max(tmp)
 
         plt.text(xmax+(xmax-xmin)/20, ymin-(ymax-ymin)/20., "min = {:f}".format(mini), {'color': 'k', 'fontsize': 10},
