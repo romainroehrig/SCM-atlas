@@ -46,7 +46,7 @@ diagnostics = OrderedDict([
             ('hfss',  {'ymin':-40., 'ymax':  300.}),
             ('hfls',  {'ymin':-40., 'ymax':   40.}),
             ('ustar', {'ymin':  0., 'ymax':    1.}),
-            ('tsurf', {'ymin':280., 'ymax':  320.}),
+            ('ts',    {'ymin':280., 'ymax':  320.}),
         ]),
     }), # end TS_surface         
     #######################
