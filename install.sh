@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -evx
 
@@ -64,7 +64,7 @@ sed -i.bak "s/__DIR_REF__/"$tmp"/" setenv
 # Some Testing
 testing="y"
 
-if [ $testing == "y" ]; then
+if [ "$testing" == "y" ]; then
 
     source setenv
 
