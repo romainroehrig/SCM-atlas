@@ -247,10 +247,34 @@ def f_qt(ds):
     """
 
     try:
-        ql = get_ql(ds)
-        qi = get_qi(ds)
-        qr = get_qr(ds)
-        qsn = get_qsn(ds)
+        try:
+            ql = get_ql(ds)
+        except AttributeError:
+            logger.debug('No ql available. Assume equal 0')
+            ql = 0
+        except:
+            raise
+        try:
+            qi = get_qi(ds)
+        except AttributeError:
+            logger.debug('No qi available. Assume equal 0')
+            qi = 0
+        except:
+            raise
+        try:
+            qr = get_qr(ds)
+        except AttributeError:
+            logger.debug('No qr available. Assume equal 0')
+            qr = 0
+        except:
+            raise
+        try:
+            qsn = get_qsn(ds)
+        except AttributeError:
+            logger.debug('No qsn available. Assume equal 0')
+            qsn = 0
+        except:
+            raise
         tmp = ds.qv + ql + qi + qr + qsn
     except:
         raise
@@ -430,7 +454,7 @@ def get_qi(ds):
             tmp = tmp.where(tmp > 0, other=0)
             logger.debug('Dataset has qi. We can continue!')
         except AttributeError as e:
-            logger.debug('Dataset has no ql: ' + str(e))
+            logger.debug('Dataset has no qi: ' + str(e))
             logger.debug('Just raise exception (AttributeError)')
             raise
         except:
