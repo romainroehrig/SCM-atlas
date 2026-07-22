@@ -24,7 +24,7 @@ subcases = OrderedDict([
         ('SANDU', ['REF']),
         ])
 
-model = Model(name='arp632.gabls_CMIP6',binVersion='arp632.gabls',levgrid='L91',tstep=300)
+model = Model(name='arp642.gabls_CMIP6',binVersion='arp642.gabls',levgrid='L91',tstep=300)
 
 simulations = OrderedDict()
 for case in cases:
@@ -32,5 +32,5 @@ for case in cases:
     for subcase in subcases[case]:
         simulations[case][subcase] = [
                 Simulation(name='CMIP6',model=model,case=case,subcase=subcase,line='r',
-                    ncfile=os.path.join('__DIR_ATLAS__','test/{0}_{1}_arp632.galbs_CMIP6_L91_300s_klevel.nc'.format(case,subcase))),
+                    ncfile=os.path.join('__DIR_ATLAS__','test/{0}_{1}_arp642.galbs_CMIP6_L91_300s_klevel.nc'.format(case,subcase))),
                 ]
