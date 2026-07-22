@@ -7,6 +7,7 @@
     * [numpy](https://numpy.org/)
     * [netCDF4](https://unidata.github.io/netcdf4-python/)
     * [xarray](http://xarray.pydata.org/en/stable/#)
+    * [cftime](https://unidata.github.io/cftime/)
     * [matplotlib](https://matplotlib.org/)
     * Optional: [pylatex](https://jeltef.github.io/PyLaTeX/latest/) to prepare atlas pdf files.
 
@@ -18,12 +19,12 @@ To install SCM-atlas on a CNRM computer, with access to the CNRM Lustre system:
 
 2. Modify `install.sh`:
 
-   * Set `ATLAS_VERSION`, e.g., `ATLAS_VERSION=1.3`
+   * Set `ATLAS_VERSION`, e.g., `ATLAS_VERSION=1.3.1`
    * Set where you want to install SCM-atlas tools: default is `DIR_ATLAS=$HOME/Tools/SCM-atlas/V${ATLAS_VERSION}`
    * Set where you want to run SCM-atlas tools: default is `DIR_RUN=$HOME/Atlas1D/V${ATLAS_VERSION}`
    * Set where the reference datasets (e.g., LES) can be found: default is `DIR_REF=/cnrm/amacs/USERS/roehrig/share/SCM-atlas/References/V1.0`
 
-3. Execute `install.sh`. A test is done at the end with provided SCM simulations with ARPEGE-Climat 6.3.1 for the ARMCU/REF, RICO/SHORT and SANDU/REF cases. Check the output atlas at the link provided at the end of the test.
+3. Execute `install.sh`. A test is done at the end with provided SCM simulations with ARPEGE-Climat 6.4.2 for the ARMCU/REF, RICO/SHORT, FIRE/REF and SANDU/REF cases. Check the output atlas at the link provided at the end of the test.
 
 ## Using SCM-atlas
 1. Go in the `DIR_RUN` directory
