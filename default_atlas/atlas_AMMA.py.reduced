@@ -1,0 +1,118 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Copyright (c) Météo France (2014-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
+
+import os
+
+from collections import OrderedDict
+
+from datetime import datetime, timedelta
+from matplotlib import cm # for colormaps
+
+import atlas1d
+from atlas1d.Dataset import Dataset
+
+dir_references = os.getenv('SCM_REFERENCES')
+
+####################################
+# References for ARMCU atlas
+####################################
+
+tmp = OrderedDict([
+       ('LES',{'ncfile': os.path.join(dir_references, 'AMMA.new/AMMA_LES_MESONH.nc'),  'line': 'k'}),
+       #('LES0',{'ncfile': os.path.join(dir_references, 'AMMA/AMMA_LES_MESONH_RR.nc'),  'line': 'grey'}),
+       ])
+
+references = []
+for ref in tmp.keys():
+    references.append(Dataset(name=ref,case='AMMA',subcase='REF',ncfile=tmp[ref]['ncfile'],line=tmp[ref]['line']))
+
+####################################
+# Configuration file for ARMCU atlas
+####################################
+
+tmin = datetime(2006,7,10,6)
+tmax = datetime(2006,7,10,18)
+
+diagnostics = OrderedDict([
+    #######################
+    ("TS_surface",{
+        'head'     : 'Surface (TS)'      ,
+        'type'     : 'plotTS'            ,
+        'tmin'     : tmin                ,
+        'tmax'     : tmax                ,        
+        'dtlabel'  : '1h'                ,
+        'xname'    : '10 July 2006 (UTC)',
+        'variables': OrderedDict([
+            ('hfss',  {'ymin':-40., 'ymax':  400.}),
+            ('hfls',  {'ymin':  0., 'ymax':  100.}),
+            ('ustar', {'ymin':  0., 'ymax':    1.}),
+            ('ts',    {'ymin':280., 'ymax':  320.}),
+            ('pr',    {'ymin':  0., 'ymax':    5.}),
+        ]),
+    }), # end TS_surface         
+    #######################
+    ("2D_cloud",{
+        'head'     : 'Clouds (2D)'       ,
+        'type'     : 'plot2D'            ,
+        'tmin'     : tmin                ,
+        'tmax'     : tmax                ,        
+        'ymin'     :    0.               ,
+        'ymax'     :   18.               ,
+        'yname'    : 'altitude (km)'     ,
+        'levunits' : 'km'                ,
+        'dtlabel'  : '1h'                ,
+        'xname'    : '10 July 2006 (UTC)',
+        'variables': OrderedDict([
+            ('cl' , {'levels': [0,1] + list(range(4,21,2))   , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('ql' , {'levels': list(range(0,41,4))           , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('qi' , {'levels': list(range(0,41,4))           , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('qc' , {'levels': list(range(0,41,4))           , 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('qr' , {'levels': [i*4 for i in range(0,11,1)], 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('qsn', {'levels': [i*4 for i in range(0,11,1)], 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('qg' , {'levels': [i*4 for i in range(0,11,1)], 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+            ('qp' , {'levels': [i*4 for i in range(0,11,1)], 'extend':'max', 'firstwhite':True, 'cmap': cm.RdBu }),
+        ]),
+    }), # end 2D_cloud
+    #######################
+    ("TS_cloud",{
+        'head'     : 'Clouds (TS)'       ,
+        'type'     : 'plotTS'            ,
+        'tmin'     : tmin                ,
+        'tmax'     : tmax                ,        
+        'dtlabel'  : '1h'                ,
+        'xname'    : '10 July 2006 (UTC)',
+        'variables': OrderedDict([
+            ('clt',  {'ymin':  0., 'ymax':   100.}),
+            ('zcb', {'ymin':  0., 'ymax':  4000.}),
+            ('zct', {'ymin':  0., 'ymax': 18000.}),
+            ('lwp', {'ymin':  0., 'ymax':   100.}),            
+            ('iwp', {'ymin':  0., 'ymax':   100.}),            
+            ('rwp', {'ymin':  0., 'ymax':   200.}),            
+            ('swp', {'ymin':  0., 'ymax':   200.}),            
+            ('gwp', {'ymin':  0., 'ymax':   200.}),            
+        ]),
+    }), # end TS_cloud  
+    #######################
+#    ("init",{
+#        'head'     : 'Init'         ,
+#        'type'     : 'plotInitP'    ,
+#        'ymin'     : 0.             ,
+#        'ymax'     : 20.            ,
+#        'yname'    : 'altitude (km)',
+#        'levunits' : 'km'           ,
+#        'variables': OrderedDict([
+#            ('ua',     {'xmin': -20., 'xmax':   20.}),
+#            ('va',     {'xmin':  -7., 'xmax':    7.}),
+#            ('theta',  {'xmin': 295., 'xmax':  450.}),
+#            ('thetal', {'xmin': 295., 'xmax':  450.}),
+#            ('qv',     {'xmin':  -1., 'xmax':   18.}),
+#            ('qt',     {'xmin':  -1., 'xmax':   18.}),
+#            ('ql',     {'xmin':  -1., 'xmax':   10.}),
+#            ('qi',     {'xmin':  -1., 'xmax':   10.}),
+#            ('tke',    {'xmin':  -1., 'xmax':    1.}),
+#        ]),       
+#    }), # end init 
+]) # end diagnostics
